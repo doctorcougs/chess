@@ -79,20 +79,68 @@ public class ChessPiece {
         for (int[] move : relativeMoves) {
             int Row = myPosition.getRow() + move[0];
             int Col = myPosition.getColumn() + move[1];
-            ChessPosition globalPosMove = new ChessPosition(Row, Col);
 
             // if that move is off the board then go to next move
             if (Col > 8 || Col < 1 || Row > 8 || Row < 1) {
                 continue;
             }
 
+            ChessPosition globalPosMove = new ChessPosition(Row, Col);
+
             // if there is a piece there then go to next move
             if (board.getPiece(globalPosMove) != null
                     && board.getPiece(globalPosMove).getTeamColor() == team) {
                 continue;
             }
+
+            // move passed the checks so we add
             ChessMove possibleMove = new ChessMove(myPosition, globalPosMove, null);
             out.add(possibleMove);
+        }
+    }
+
+    private void directionalityToMoves(ChessBoard board, ChessPosition myPosition,
+                                       int[][] directionality, Collection<ChessMove> out) {
+        for (int[] direction : directionality) {
+            int rowMove = direction[0];
+            int colMove = direction[1];
+
+            //keep adding moves until we hit a wall or a piece
+            int dist = 1;
+            boolean hitEnemy = false;
+            while (true) {
+                //check if we have hit an enemy because now we can't go farther
+                if (hitEnemy) {
+                    break;
+                }
+
+                int Row = myPosition.getRow() + (rowMove * dist);
+                int Col = myPosition.getColumn() + (colMove * dist);
+
+                //going off of the board so break
+                if (Col > 8 || Col < 1 || Row > 8 || Row < 1) {
+                    break;
+                }
+
+                ChessPosition globalPosMove = new ChessPosition(Row, Col);
+
+                //hit one of our piece so break
+                if (board.getPiece(globalPosMove) != null
+                        && board.getPiece(globalPosMove).getTeamColor() == team) {
+                    break;
+                }
+                //hit an enemy piece so we get this move but no more
+                if (board.getPiece(globalPosMove) != null) {
+                    hitEnemy = true;
+                }
+
+                // move passed the checks so we add
+                ChessMove possibleMove = new ChessMove(myPosition, globalPosMove, null);
+                out.add(possibleMove);
+
+                //increment distance for next loop
+                dist++;
+            }
         }
     }
 
@@ -106,15 +154,18 @@ public class ChessPiece {
                 return out;
             }
             case QUEEN -> {
-                int [][] relativeMoves = {{}}
+                int [][] directionality = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
+                directionalityToMoves(board, myPosition, directionality, out);
                 return out;
             }
             case ROOK -> {
-
+                int [][] directionality = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+                directionalityToMoves(board, myPosition, directionality, out);
                 return out;
             }
             case BISHOP -> {
-
+                int [][] directionality = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
+                directionalityToMoves(board, myPosition, directionality, out);
                 return out;
             }
             case KNIGHT -> {
