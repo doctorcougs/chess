@@ -15,6 +15,11 @@ public class ChessPiece {
     private final PieceType type;
 
     @Override
+    public String toString() {
+        return team + " " + type;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
