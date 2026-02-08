@@ -54,13 +54,32 @@ public class ChessGame {
      * startPosition
      */
 
-    // change to restrict moves that put our king into check
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        //check for existence
         if (gameBoard.getPiece(startPosition) == null) {
             return null;
         }
         ChessPiece guy = gameBoard.getPiece(startPosition);
-        return guy.pieceMoves(gameBoard, startPosition);
+
+        //list of valid moves
+        Collection<ChessMove> validMoves = new ArrayList<>();
+
+        //grab our possible moves
+        Collection<ChessMove> possibleMoves = guy.pieceMoves(gameBoard, startPosition);
+        for (ChessMove move : possibleMoves) {
+            //take out our current piece and move to the end
+            gameBoard.addPiece(startPosition, null);
+            gameBoard.addPiece(move.getEndPosition(), guy);
+            //check our check in current state and add if not in check
+            if (!isInCheck(guy.getTeamColor())) {
+                validMoves.add(move);
+            }
+            //reset back to how it was
+            gameBoard.addPiece(move.getEndPosition(), null);
+            gameBoard.addPiece(startPosition, guy);
+
+        }
+        return validMoves;
     }
 
     /**
