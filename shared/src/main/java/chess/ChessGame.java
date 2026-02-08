@@ -1,6 +1,9 @@
 package chess;
 
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -50,6 +53,8 @@ public class ChessGame {
      * @return Set of valid moves for requested piece, or null if no piece at
      * startPosition
      */
+
+    // change to restrict moves that put our king into check
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         if (gameBoard.getPiece(startPosition) == null) {
             return null;
@@ -75,7 +80,44 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+        //default not in check
+        boolean check = false;
+        Map<ChessPosition, ChessPiece> enemyPositions = new HashMap<>();
+        ChessPosition kingPos = null;
 
+        //cycle through the board
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                //grab all the enemy pieces
+                ChessPosition currentPosition = new ChessPosition(i, j);
+                ChessPiece currentPiece = gameBoard.getPiece(currentPosition);
+                if (currentPiece.getTeamColor() != teamColor) {
+                    //put the piece into a map that knows their position and who they are
+                    enemyPositions.put(currentPosition, currentPiece);
+                }
+                if (currentPiece.getPieceType() == ChessPiece.PieceType.KING
+                        && currentPiece.getTeamColor() == teamColor) {
+                    kingPos = new ChessPosition(i, j);
+                }
+            }
+        }
+
+        //cycle through the enemies movesets
+        for (var item : enemyPositions.entrySet()) {
+            ChessPosition pos = item.getKey();
+            ChessPiece enemy = item.getValue();
+            Collection<ChessMove> moveSet = enemy.pieceMoves(gameBoard, pos);
+            //check each moveset to see if the king is living in one of their attack spots
+            for (ChessMove move : moveSet) {
+                if (move.getEndPosition() == kingPos) {
+                    check = true;
+                    break;
+                }
+            }
+
+        }
+
+        return check;
     }
 
     /**
