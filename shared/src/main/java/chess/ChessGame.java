@@ -14,7 +14,7 @@ import java.util.Map;
 public class ChessGame {
 
     private TeamColor teamTurn;
-    private ChessBoard gameBoard;
+    private final ChessBoard gameBoard;
 
     public ChessGame() {
         gameBoard = new ChessBoard();
@@ -88,8 +88,33 @@ public class ChessGame {
      * @param move chess move to perform
      * @throws InvalidMoveException if move is invalid
      */
-    public void makeMove(ChessMove move) throws InvalidMoveException {
 
+    public void makeMove(ChessMove move) throws InvalidMoveException {
+        //get list of valid moves
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+        //if our valid moves are empty return null
+        if (validMoves == null) {
+            throw new InvalidMoveException("No valid moves");
+        }
+
+        //make sure the move is in the valids, and that it's the right teams turn
+        boolean isValidMove = validMoves.contains(move);
+        ChessPiece guy = gameBoard.getPiece(move.getStartPosition());
+        boolean correctTurn = guy.getTeamColor() == teamTurn;
+
+        if (isValidMove && correctTurn) {
+            if (move.getPromotionPiece() != null) {
+                guy = new ChessPiece(teamTurn, move.getPromotionPiece());
+            }
+            //remove and add piece
+            gameBoard.addPiece(move.getStartPosition(), null);
+            gameBoard.addPiece(move.getEndPosition(), guy);
+            //if our team turn is white then black and vise versa
+            setTeamTurn(teamTurn == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+        }
+        else {
+            throw new InvalidMoveException("Not a valid move or it's not your turn");
+        }
     }
 
     /**
