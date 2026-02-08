@@ -11,7 +11,7 @@ import java.util.*;
 public class ChessGame {
 
     private TeamColor teamTurn;
-    private final ChessBoard gameBoard;
+    private ChessBoard gameBoard;
 
     public ChessGame() {
         gameBoard = new ChessBoard();
@@ -64,7 +64,8 @@ public class ChessGame {
         //grab our possible moves
         Collection<ChessMove> possibleMoves = guy.pieceMoves(gameBoard, startPosition);
         for (ChessMove move : possibleMoves) {
-            //take out our current piece and move to the end
+            //take out our current piece and move to the end also checks if captured a piece
+            ChessPiece deadEnemy = gameBoard.getPiece(move.getEndPosition());
             gameBoard.addPiece(startPosition, null);
             gameBoard.addPiece(move.getEndPosition(), guy);
             //check our check in current state and add if not in check
@@ -72,7 +73,7 @@ public class ChessGame {
                 validMoves.add(move);
             }
             //reset back to how it was
-            gameBoard.addPiece(move.getEndPosition(), null);
+            gameBoard.addPiece(move.getEndPosition(), deadEnemy);
             gameBoard.addPiece(startPosition, guy);
 
         }
@@ -132,6 +133,9 @@ public class ChessGame {
                 //grab all the enemy pieces
                 ChessPosition currentPosition = new ChessPosition(i, j);
                 ChessPiece currentPiece = gameBoard.getPiece(currentPosition);
+                if (currentPiece == null) {
+                    continue;
+                }
                 if (currentPiece.getTeamColor() != teamColor) {
                     //put the piece into a map that knows their position and who they are
                     enemyPositions.put(currentPosition, currentPiece);
@@ -150,7 +154,7 @@ public class ChessGame {
             Collection<ChessMove> moveSet = enemy.pieceMoves(gameBoard, pos);
             //check each moveset to see if the king is living in one of their attack spots
             for (ChessMove move : moveSet) {
-                if (move.getEndPosition() == kingPos) {
+                if (move.getEndPosition().equals(kingPos)) {
                     check = true;
                     break;
                 }
@@ -169,7 +173,27 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         //if we can't make any valid moves and we are also in check then boom checkmate
-        return isInStalemate(teamColor) && isInCheck(teamColor);
+        boolean noValidMoves = false;
+        Collection<ChessMove> totalValidMoves = new ArrayList<>();
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition currentPosition = new ChessPosition(i, j);
+                ChessPiece currentPiece = gameBoard.getPiece(currentPosition);
+                if (currentPiece == null) {
+                    continue;
+                }
+                //if our piece is the color we are checking then we are going to grab all of his valid moves
+                //we add those to our total valid moves collection
+                if (currentPiece.getTeamColor() == teamColor) {
+                    totalValidMoves.addAll(validMoves(currentPosition));
+                }
+            }
+        }
+        //only if there is no valid moves then are we in stalemate
+        if (totalValidMoves.isEmpty()) {
+            noValidMoves = true;
+        }
+        return  noValidMoves && isInCheck(teamColor);
     }
 
     /**
@@ -181,11 +205,17 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         boolean stale = false;
+        if (isInCheck(teamColor)) {
+            return stale;
+        }
         Collection<ChessMove> totalValidMoves = new ArrayList<>();
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 ChessPosition currentPosition = new ChessPosition(i, j);
                 ChessPiece currentPiece = gameBoard.getPiece(currentPosition);
+                if (currentPiece == null) {
+                    continue;
+                }
                 //if our piece is the color we are checking then we are going to grab all of his valid moves
                 //we add those to our total valid moves collection
                 if (currentPiece.getTeamColor() == teamColor) {
@@ -206,7 +236,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        gameBoard.resetBoard();
+        gameBoard = board;
     }
 
     /**
