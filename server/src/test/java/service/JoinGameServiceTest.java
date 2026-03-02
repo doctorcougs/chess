@@ -22,20 +22,20 @@ public class JoinGameServiceTest {
 
     @Test
     void joinGameSuccessClaimsWhite() throws DataAccessException {
-        dataAccess.createAuth(new AuthData("alice", "token-a"));
+        dataAccess.createAuth(new AuthData("coug", "token-a"));
         int gameID = createGameService.createGame("token-a", new CreateGameService.CreateGameRequest("g1")).gameID();
 
         joinGameService.joinGame("token-a", new JoinGameService.JoinGameRequest("WHITE", gameID));
 
         var updated = dataAccess.getGame(gameID);
-        assertEquals("alice", updated.whiteUsername());
+        assertEquals("coug", updated.whiteUsername());
         assertNull(updated.blackUsername());
     }
 
     @Test
     void joinGameColorAlreadyTakenThrows() throws DataAccessException {
-        dataAccess.createAuth(new AuthData("alice", "token-a"));
-        dataAccess.createAuth(new AuthData("bob", "token-b"));
+        dataAccess.createAuth(new AuthData("coug", "token-a"));
+        dataAccess.createAuth(new AuthData("cougie", "token-b"));
         int gameID = createGameService.createGame("token-a", new CreateGameService.CreateGameRequest("g1")).gameID();
 
         joinGameService.joinGame("token-a", new JoinGameService.JoinGameRequest("WHITE", gameID));
