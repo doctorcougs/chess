@@ -9,6 +9,8 @@ import model.UserData;
 import service.ClearService;
 import service.CreateUser;
 import service.CreateGameService;
+import service.ListGamesService;
+
 
 import java.util.Map;
 
@@ -19,6 +21,8 @@ public class Server {
     private final ClearService clearService = new ClearService(dataAccess);
     private final CreateUser createUserService = new CreateUser(dataAccess);
     private final CreateGameService createGameService = new CreateGameService(dataAccess);
+    private final ListGamesService listGamesService = new ListGamesService(dataAccess);
+
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
@@ -71,6 +75,26 @@ public class Server {
             } catch (Exception e) {
                 ctx.status(500).contentType("application/json")
                    .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            }
+        });
+
+        javalin.get("/game", ctx -> {
+            try {
+                String authToken = ctx.header("authToken");
+                if (authToken == null || authToken.isBlank()) {
+                    authToken = ctx.header("authorization");
+                }
+
+                var result = listGamesService.listGames(authToken);
+                ctx.status(200).contentType("application/json").result(gson.toJson(result));
+            } catch (DataAccessException e) {
+                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+                int status = msg.contains("unauthorized") ? 401 : 500;
+                ctx.status(status).contentType("application/json")
+                        .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            } catch (Exception e) {
+                ctx.status(500).contentType("application/json")
+                        .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
             }
         });
     }
