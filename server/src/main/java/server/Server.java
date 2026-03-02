@@ -40,7 +40,6 @@ public class Server {
                 var auth = createUserService.register(request);
                 ctx.status(200).contentType("application/json").result(gson.toJson(auth));
             } catch (DataAccessException e) {
-                // Common mapping: bad input -> 400, otherwise treat as already taken -> 403
                 int status = (e.getMessage() != null && e.getMessage().toLowerCase().contains("missing")) ? 400 : 403;
                 ctx.status(status).contentType("application/json")
                    .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
