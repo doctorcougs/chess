@@ -19,6 +19,7 @@ public class MemoryDataAccess implements DataAccess {
         users.clear();
         games.clear();
         auths.clear();
+        nextGameID = 1;
     }
 
     @Override

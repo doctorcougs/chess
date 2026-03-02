@@ -8,6 +8,7 @@ import io.javalin.Javalin;
 import model.UserData;
 import service.ClearService;
 import service.CreateUser;
+import service.CreateGameService;
 
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class Server {
     private final Gson gson = new Gson();
     private final ClearService clearService = new ClearService(dataAccess);
     private final CreateUser createUserService = new CreateUser(dataAccess);
+    private final CreateGameService createGameService = new CreateGameService(dataAccess);
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
@@ -41,6 +43,29 @@ public class Server {
                 ctx.status(200).contentType("application/json").result(gson.toJson(auth));
             } catch (DataAccessException e) {
                 int status = (e.getMessage() != null && e.getMessage().toLowerCase().contains("missing")) ? 400 : 403;
+                ctx.status(status).contentType("application/json")
+                   .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            } catch (Exception e) {
+                ctx.status(500).contentType("application/json")
+                   .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            }
+        });
+
+        javalin.post("/game", ctx -> {
+            try {
+                String authToken = ctx.header("authToken");
+                if (authToken == null || authToken.isBlank()) {
+                    authToken = ctx.header("authorization");
+                }
+
+                CreateGameService.CreateGameRequest request =
+                        gson.fromJson(ctx.body(), CreateGameService.CreateGameRequest.class);
+
+                var result = createGameService.createGame(authToken, request);
+                ctx.status(200).contentType("application/json").result(gson.toJson(result));
+            } catch (DataAccessException e) {
+                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+                int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
                 ctx.status(status).contentType("application/json")
                    .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
             } catch (Exception e) {
