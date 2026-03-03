@@ -47,6 +47,21 @@ public class Server {
                 .result(gson.toJson(Map.of("message", "Error: " + message)));
     }
 
+    private String getMsgLower(DataAccessException e) {
+        return e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+    }
+
+    private int getJoinGameStatus(String msg) {
+        if (msg.contains("unauthorized")) {
+            return 401;
+        } else if (msg.contains("missing") || msg.contains("invalid") || msg.contains("not found")) {
+            return 400;
+        } else if (msg.contains("taken")) {
+            return 403;
+        }
+        return 500;
+    }
+
     private void registerEndpoints() {
         javalin.delete("/db", this::handleClear);
         javalin.post("/user", this::handleRegister);
@@ -72,10 +87,8 @@ public class Server {
             var auth = createUserService.register(request);
             ctx.status(200).contentType("application/json").result(gson.toJson(auth));
         } catch (DataAccessException e) {
-            int status = (e.getMessage() != null && e.getMessage().toLowerCase().contains("missing")) ? 400 : 403;
+            int status = getMsgLower(e).contains("missing") ? 400 : 403;
             error(ctx, status, e.getMessage());
-        } catch (Exception e) {
-            error(ctx, 500, e.getMessage());
         }
     }
 
@@ -87,11 +100,9 @@ public class Server {
             var result = createGameService.createGame(authToken, request);
             ctx.status(200).contentType("application/json").result(gson.toJson(result));
         } catch (DataAccessException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            String msg = getMsgLower(e);
             int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
             error(ctx, status, e.getMessage());
-        } catch (Exception e) {
-            error(ctx, 500, e.getMessage());
         }
     }
 
@@ -101,11 +112,8 @@ public class Server {
             var result = listGamesService.listGames(authToken);
             ctx.status(200).contentType("application/json").result(gson.toJson(result));
         } catch (DataAccessException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-            int status = msg.contains("unauthorized") ? 401 : 500;
+            int status = getMsgLower(e).contains("unauthorized") ? 401 : 500;
             error(ctx, status, e.getMessage());
-        } catch (Exception e) {
-            error(ctx, 500, e.getMessage());
         }
     }
 
@@ -117,14 +125,7 @@ public class Server {
             joinGameService.joinGame(authToken, request);
             ctx.status(200).contentType("application/json").result("{}");
         } catch (DataAccessException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-            int status =
-                    msg.contains("unauthorized") ? 401 :
-                            (msg.contains("missing") || msg.contains("invalid") || msg.contains("not found")) ? 400 :
-                                    msg.contains("taken") ? 403 : 500;
-            error(ctx, status, e.getMessage());
-        } catch (Exception e) {
-            error(ctx, 500, e.getMessage());
+            error(ctx, getJoinGameStatus(getMsgLower(e)), e.getMessage());
         }
     }
 
@@ -135,11 +136,9 @@ public class Server {
             var result = loginService.login(request);
             ctx.status(200).contentType("application/json").result(gson.toJson(result));
         } catch (DataAccessException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            String msg = getMsgLower(e);
             int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
             error(ctx, status, e.getMessage());
-        } catch (Exception e) {
-            error(ctx, 500, e.getMessage());
         }
     }
 
@@ -149,11 +148,8 @@ public class Server {
             logoutService.logout(authToken);
             ctx.status(200).contentType("application/json").result("{}");
         } catch (DataAccessException e) {
-            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-            int status = msg.contains("unauthorized") ? 401 : 500;
+            int status = getMsgLower(e).contains("unauthorized") ? 401 : 500;
             error(ctx, status, e.getMessage());
-        } catch (Exception e) {
-            error(ctx, 500, e.getMessage());
         }
     }
 

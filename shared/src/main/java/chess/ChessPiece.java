@@ -106,12 +106,14 @@ public class ChessPiece {
 
     private void addPawnAttack(ChessBoard board, ChessPosition myPosition, ChessPosition attackPos,
                                int promotionRow, int newRow, Collection<ChessMove> out) {
-        if (board.getPiece(attackPos) != null && board.getPiece(attackPos).getTeamColor() != team) {
-            if (newRow == promotionRow) {
-                addPromotionMoves(myPosition, attackPos, out);
-            } else {
-                out.add(new ChessMove(myPosition, attackPos, null));
-            }
+        ChessPiece target = board.getPiece(attackPos);
+        if (target == null || target.getTeamColor() == team) {
+            return;
+        }
+        if (newRow == promotionRow) {
+            addPromotionMoves(myPosition, attackPos, out);
+        } else {
+            out.add(new ChessMove(myPosition, attackPos, null));
         }
     }
 
