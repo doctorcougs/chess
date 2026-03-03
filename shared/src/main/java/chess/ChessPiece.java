@@ -4,12 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
-/**
- * Represents a single chess piece
- * <p>
- * Note: You can add to this class, but you may not alter
- * signature of the existing methods.
- */
 public class ChessPiece {
 
     private final ChessGame.TeamColor team;
@@ -39,9 +33,6 @@ public class ChessPiece {
         this.type = type;
     }
 
-    /**
-     * The various different chess piece options
-     */
     public enum PieceType {
         KING,
         QUEEN,
@@ -51,50 +42,28 @@ public class ChessPiece {
         PAWN
     }
 
-    /**
-     * @return Which team this chess piece belongs to
-     */
     public ChessGame.TeamColor getTeamColor() {
         return team;
     }
 
-    /**
-     * @return which type of chess piece this piece is
-     */
     public PieceType getPieceType() {
         return type;
     }
 
-    /**
-     * Calculates all the positions a chess piece can move to
-     * Does not take into account moves that are illegal due to leaving the king in
-     * danger
-     * return Collection of valid moves
-     */
-
-    //for king and knight
     private void relativeToGlobal(ChessBoard board, ChessPosition myPosition,
                                   int[][] relativeMoves, Collection<ChessMove> out) {
         for (int[] move : relativeMoves) {
             int row = myPosition.getRow() + move[0];
             int col = myPosition.getColumn() + move[1];
-
-            // if that move is off the board then go to next move
             if (col > 8 || col < 1 || row > 8 || row < 1) {
                 continue;
             }
-
             ChessPosition globalPosMove = new ChessPosition(row, col);
-
-            // if there is a piece there then go to next move
             if (board.getPiece(globalPosMove) != null
                     && board.getPiece(globalPosMove).getTeamColor() == team) {
                 continue;
             }
-
-            // move passed the checks so we add
-            ChessMove possibleMove = new ChessMove(myPosition, globalPosMove, null);
-            out.add(possibleMove);
+            out.add(new ChessMove(myPosition, globalPosMove, null));
         }
     }
 
@@ -103,49 +72,51 @@ public class ChessPiece {
         for (int[] direction : directionality) {
             int rowMove = direction[0];
             int colMove = direction[1];
-
-            //keep adding moves until we hit a wall or a piece
             int dist = 1;
             boolean hitEnemy = false;
             while (true) {
-                //check if we have hit an enemy because now we can't go farther
                 if (hitEnemy) {
                     break;
                 }
-
                 int row = myPosition.getRow() + (rowMove * dist);
                 int col = myPosition.getColumn() + (colMove * dist);
-
-                //going off of the board so break
                 if (col > 8 || col < 1 || row > 8 || row < 1) {
                     break;
                 }
-
                 ChessPosition globalPosMove = new ChessPosition(row, col);
-
-                //hit one of our piece so break
                 if (board.getPiece(globalPosMove) != null
                         && board.getPiece(globalPosMove).getTeamColor() == team) {
                     break;
                 }
-                //hit an enemy piece so we get this move but no more
                 if (board.getPiece(globalPosMove) != null) {
                     hitEnemy = true;
                 }
-
-                // move passed the checks so we add
-                ChessMove possibleMove = new ChessMove(myPosition, globalPosMove, null);
-                out.add(possibleMove);
-
-                //increment distance for next loop
+                out.add(new ChessMove(myPosition, globalPosMove, null));
                 dist++;
+            }
+        }
+    }
+
+    private void addPromotionMoves(ChessPosition from, ChessPosition to, Collection<ChessMove> out) {
+        out.add(new ChessMove(from, to, PieceType.KNIGHT));
+        out.add(new ChessMove(from, to, PieceType.BISHOP));
+        out.add(new ChessMove(from, to, PieceType.ROOK));
+        out.add(new ChessMove(from, to, PieceType.QUEEN));
+    }
+
+    private void addPawnAttack(ChessBoard board, ChessPosition myPosition, ChessPosition attackPos,
+                               int promotionRow, int newRow, Collection<ChessMove> out) {
+        if (board.getPiece(attackPos) != null && board.getPiece(attackPos).getTeamColor() != team) {
+            if (newRow == promotionRow) {
+                addPromotionMoves(myPosition, attackPos, out);
+            } else {
+                out.add(new ChessMove(myPosition, attackPos, null));
             }
         }
     }
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> out = new ArrayList<>();
-        //use a switch to get relative moves and then translate them to board moves
         switch (type) {
             case KING -> {
                 int[][] relativeMoves = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
@@ -173,31 +144,22 @@ public class ChessPiece {
                 return out;
             }
             case PAWN -> {
-                //different logic numbers for different teams
                 int direction = (team == ChessGame.TeamColor.WHITE) ? 1 : -1;
                 int startRow = (team == ChessGame.TeamColor.WHITE) ? 2 : 7;
                 int promotionRow = (team == ChessGame.TeamColor.WHITE) ? 8 : 1;
 
                 int newRow = myPosition.getRow() + direction;
-                //this shouldn't happen but check row bounds
                 if (newRow < 1 || newRow > 8) {
                     return out;
                 }
-                ChessPosition moveOne = new ChessPosition(newRow, myPosition.getColumn());
 
-                //checks if the first move is possible, and then second as well
+                ChessPosition moveOne = new ChessPosition(newRow, myPosition.getColumn());
                 if (board.getPiece(moveOne) == null) {
-                    //promotion logic
                     if (newRow == promotionRow) {
-                        out.add(new ChessMove(myPosition, moveOne, PieceType.KNIGHT));
-                        out.add(new ChessMove(myPosition, moveOne, PieceType.BISHOP));
-                        out.add(new ChessMove(myPosition, moveOne, PieceType.ROOK));
-                        out.add(new ChessMove(myPosition, moveOne, PieceType.QUEEN));
+                        addPromotionMoves(myPosition, moveOne, out);
                     } else {
                         out.add(new ChessMove(myPosition, moveOne, null));
                     }
-
-                    //if we are moving two we can't also promote
                     if (myPosition.getRow() == startRow) {
                         ChessPosition moveTwo = new ChessPosition(newRow + direction, myPosition.getColumn());
                         if (board.getPiece(moveTwo) == null) {
@@ -205,39 +167,17 @@ public class ChessPiece {
                         }
                     }
                 }
-                //attacking!
+
                 if (myPosition.getColumn() < 8) {
                     ChessPosition rightAttack = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
-
-                    //if there is a piece diag right and it's not our team we can move there
-                    if (board.getPiece(rightAttack) != null && board.getPiece(rightAttack).getTeamColor() != team) {
-                        // can reuse newrow because we are still moving up one, checks for promotion
-                        if (newRow == promotionRow) {
-                            out.add(new ChessMove(myPosition, rightAttack, PieceType.KNIGHT));
-                            out.add(new ChessMove(myPosition, rightAttack, PieceType.BISHOP));
-                            out.add(new ChessMove(myPosition, rightAttack, PieceType.ROOK));
-                            out.add(new ChessMove(myPosition, rightAttack, PieceType.QUEEN));
-                        } else {
-                            out.add(new ChessMove(myPosition, rightAttack, null));
-                        }
-                    }
+                    addPawnAttack(board, myPosition, rightAttack, promotionRow, newRow, out);
                 }
-                //same logic for left attack
+
                 if (myPosition.getColumn() > 1) {
                     ChessPosition leftAttack = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
-
-                    if (board.getPiece(leftAttack) != null && board.getPiece(leftAttack).getTeamColor() != team) {
-                        // can reuse newrow because we are still moving up one, checks for promotion
-                        if (newRow == promotionRow) {
-                            out.add(new ChessMove(myPosition, leftAttack, PieceType.KNIGHT));
-                            out.add(new ChessMove(myPosition, leftAttack, PieceType.BISHOP));
-                            out.add(new ChessMove(myPosition, leftAttack, PieceType.ROOK));
-                            out.add(new ChessMove(myPosition, leftAttack, PieceType.QUEEN));
-                        } else {
-                            out.add(new ChessMove(myPosition, leftAttack, null));
-                        }
-                    }
+                    addPawnAttack(board, myPosition, leftAttack, promotionRow, newRow, out);
                 }
+
                 return out;
             }
         }

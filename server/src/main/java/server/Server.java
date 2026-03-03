@@ -48,109 +48,113 @@ public class Server {
     }
 
     private void registerEndpoints() {
-        javalin.delete("/db", ctx -> {
-            try {
-                clearService.clear();
-                ctx.status(200).contentType("application/json").result("{}");
-            } catch (DataAccessException e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
+        javalin.delete("/db", this::handleClear);
+        javalin.post("/user", this::handleRegister);
+        javalin.post("/game", this::handleCreateGame);
+        javalin.get("/game", this::handleListGames);
+        javalin.put("/game", this::handleJoinGame);
+        javalin.post("/session", this::handleLogin);
+        javalin.delete("/session", this::handleLogout);
+    }
 
-        javalin.post("/user", ctx -> {
-            try {
-                UserData request = gson.fromJson(ctx.body(), UserData.class);
-                var auth = createUserService.register(request);
-                ctx.status(200).contentType("application/json").result(gson.toJson(auth));
-            } catch (DataAccessException e) {
-                int status = (e.getMessage() != null && e.getMessage().toLowerCase().contains("missing")) ? 400 : 403;
-                error(ctx, status, e.getMessage());
-            } catch (Exception e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
+    private void handleClear(Context ctx) {
+        try {
+            clearService.clear();
+            ctx.status(200).contentType("application/json").result("{}");
+        } catch (DataAccessException e) {
+            error(ctx, 500, e.getMessage());
+        }
+    }
 
-        javalin.post("/game", ctx -> {
-            try {
-                String authToken = getAuthToken(ctx);
-                CreateGameService.CreateGameRequest request =
-                        gson.fromJson(ctx.body(), CreateGameService.CreateGameRequest.class);
+    private void handleRegister(Context ctx) {
+        try {
+            UserData request = gson.fromJson(ctx.body(), UserData.class);
+            var auth = createUserService.register(request);
+            ctx.status(200).contentType("application/json").result(gson.toJson(auth));
+        } catch (DataAccessException e) {
+            int status = (e.getMessage() != null && e.getMessage().toLowerCase().contains("missing")) ? 400 : 403;
+            error(ctx, status, e.getMessage());
+        } catch (Exception e) {
+            error(ctx, 500, e.getMessage());
+        }
+    }
 
-                var result = createGameService.createGame(authToken, request);
-                ctx.status(200).contentType("application/json").result(gson.toJson(result));
-            } catch (DataAccessException e) {
-                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-                int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
-                error(ctx, status, e.getMessage());
-            } catch (Exception e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
+    private void handleCreateGame(Context ctx) {
+        try {
+            String authToken = getAuthToken(ctx);
+            CreateGameService.CreateGameRequest request =
+                    gson.fromJson(ctx.body(), CreateGameService.CreateGameRequest.class);
+            var result = createGameService.createGame(authToken, request);
+            ctx.status(200).contentType("application/json").result(gson.toJson(result));
+        } catch (DataAccessException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
+            error(ctx, status, e.getMessage());
+        } catch (Exception e) {
+            error(ctx, 500, e.getMessage());
+        }
+    }
 
-        javalin.get("/game", ctx -> {
-            try {
-                String authToken = getAuthToken(ctx);
-                var result = listGamesService.listGames(authToken);
-                ctx.status(200).contentType("application/json").result(gson.toJson(result));
-            } catch (DataAccessException e) {
-                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-                int status = msg.contains("unauthorized") ? 401 : 500;
-                error(ctx, status, e.getMessage());
-            } catch (Exception e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
+    private void handleListGames(Context ctx) {
+        try {
+            String authToken = getAuthToken(ctx);
+            var result = listGamesService.listGames(authToken);
+            ctx.status(200).contentType("application/json").result(gson.toJson(result));
+        } catch (DataAccessException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            int status = msg.contains("unauthorized") ? 401 : 500;
+            error(ctx, status, e.getMessage());
+        } catch (Exception e) {
+            error(ctx, 500, e.getMessage());
+        }
+    }
 
-        javalin.put("/game", ctx -> {
-            try {
-                String authToken = getAuthToken(ctx);
-                JoinGameService.JoinGameRequest request =
-                        gson.fromJson(ctx.body(), JoinGameService.JoinGameRequest.class);
+    private void handleJoinGame(Context ctx) {
+        try {
+            String authToken = getAuthToken(ctx);
+            JoinGameService.JoinGameRequest request =
+                    gson.fromJson(ctx.body(), JoinGameService.JoinGameRequest.class);
+            joinGameService.joinGame(authToken, request);
+            ctx.status(200).contentType("application/json").result("{}");
+        } catch (DataAccessException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            int status =
+                    msg.contains("unauthorized") ? 401 :
+                            (msg.contains("missing") || msg.contains("invalid") || msg.contains("not found")) ? 400 :
+                                    msg.contains("taken") ? 403 : 500;
+            error(ctx, status, e.getMessage());
+        } catch (Exception e) {
+            error(ctx, 500, e.getMessage());
+        }
+    }
 
-                joinGameService.joinGame(authToken, request);
-                ctx.status(200).contentType("application/json").result("{}");
-            } catch (DataAccessException e) {
-                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-                int status =
-                        msg.contains("unauthorized") ? 401 :
-                                (msg.contains("missing") || msg.contains("invalid") || msg.contains("not found")) ? 400 :
-                                        msg.contains("taken") ? 403 : 500;
+    private void handleLogin(Context ctx) {
+        try {
+            LoginService.LoginRequest request =
+                    gson.fromJson(ctx.body(), LoginService.LoginRequest.class);
+            var result = loginService.login(request);
+            ctx.status(200).contentType("application/json").result(gson.toJson(result));
+        } catch (DataAccessException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
+            error(ctx, status, e.getMessage());
+        } catch (Exception e) {
+            error(ctx, 500, e.getMessage());
+        }
+    }
 
-                error(ctx, status, e.getMessage());
-            } catch (Exception e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
-
-        javalin.post("/session", ctx -> {
-            try {
-                LoginService.LoginRequest request =
-                        gson.fromJson(ctx.body(), LoginService.LoginRequest.class);
-
-                var result = loginService.login(request);
-                ctx.status(200).contentType("application/json").result(gson.toJson(result));
-            } catch (DataAccessException e) {
-                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-                int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
-                error(ctx, status, e.getMessage());
-            } catch (Exception e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
-
-        javalin.delete("/session", ctx -> {
-            try {
-                String authToken = getAuthToken(ctx);
-                logoutService.logout(authToken);
-                ctx.status(200).contentType("application/json").result("{}");
-            } catch (DataAccessException e) {
-                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
-                int status = msg.contains("unauthorized") ? 401 : 500;
-                error(ctx, status, e.getMessage());
-            } catch (Exception e) {
-                error(ctx, 500, e.getMessage());
-            }
-        });
+    private void handleLogout(Context ctx) {
+        try {
+            String authToken = getAuthToken(ctx);
+            logoutService.logout(authToken);
+            ctx.status(200).contentType("application/json").result("{}");
+        } catch (DataAccessException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            int status = msg.contains("unauthorized") ? 401 : 500;
+            error(ctx, status, e.getMessage());
+        } catch (Exception e) {
+            error(ctx, 500, e.getMessage());
+        }
     }
 
     public int run(int desiredPort) {
