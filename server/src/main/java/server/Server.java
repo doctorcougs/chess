@@ -12,6 +12,8 @@ import service.CreateGameService;
 import service.ListGamesService;
 import service.JoinGameService;
 import service.LoginService;
+import service.LogoutService;
+
 
 import java.util.Map;
 
@@ -25,6 +27,7 @@ public class Server {
     private final ListGamesService listGamesService = new ListGamesService(dataAccess);
     private final JoinGameService joinGameService = new JoinGameService(dataAccess);
     private final LoginService loginService = new LoginService(dataAccess);
+    private final LogoutService logoutService = new LogoutService(dataAccess);
 
 
     public Server() {
@@ -140,6 +143,27 @@ public class Server {
                 int status =
                         msg.contains("unauthorized") ? 401 :
                                 msg.contains("missing") ? 400 : 500;
+
+                ctx.status(status).contentType("application/json")
+                        .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            } catch (Exception e) {
+                ctx.status(500).contentType("application/json")
+                        .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            }
+        });
+
+        javalin.delete("/session", ctx -> {
+            try {
+                String authToken = ctx.header("authToken");
+                if (authToken == null || authToken.isBlank()) {
+                    authToken = ctx.header("authorization");
+                }
+
+                logoutService.logout(authToken);
+                ctx.status(200).contentType("application/json").result("{}");
+            } catch (DataAccessException e) {
+                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+                int status = msg.contains("unauthorized") ? 401 : 500;
 
                 ctx.status(status).contentType("application/json")
                         .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
