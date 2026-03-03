@@ -11,10 +11,10 @@ import java.util.Objects;
  */
 public class ChessBoard {
 
-    private ChessPiece[][] BoardArray;
+    private ChessPiece[][] boardArray;
 
     public ChessBoard() {
-        BoardArray = new ChessPiece[8][8];
+        boardArray = new ChessPiece[8][8];
     }
 
     /**
@@ -24,7 +24,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        BoardArray[position.getRow() - 1][position.getColumn() - 1] = piece;
+        boardArray[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     /**
@@ -37,7 +37,7 @@ public class ChessBoard {
 
 
     public ChessPiece getPiece(ChessPosition position) {
-        return BoardArray[position.getRow() - 1][position.getColumn() - 1];
+        return boardArray[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
@@ -45,7 +45,7 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        BoardArray = new ChessPiece[8][8];
+        boardArray = new ChessPiece[8][8];
         // assorted white pieces
         addPiece(new ChessPosition(1, 1), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
         addPiece(new ChessPosition(1, 2), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
@@ -81,12 +81,12 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Objects.deepEquals(BoardArray, that.BoardArray);
+        return Objects.deepEquals(boardArray, that.boardArray);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(BoardArray);
+        return Arrays.deepHashCode(boardArray);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class ChessBoard {
         StringBuilder out = new StringBuilder();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                out.append(BoardArray[i][j] != null ? BoardArray[i][j].toString() : " ");
+                out.append(boardArray[i][j] != null ? boardArray[i][j].toString() : " ");
                 out.append("|");
             }
             out.append("\n");

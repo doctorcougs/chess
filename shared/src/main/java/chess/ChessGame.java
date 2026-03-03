@@ -166,15 +166,11 @@ public class ChessGame {
     }
 
     /**
-     * Determines if the given team is in checkmate
-     *
-     * @param teamColor which team to check for checkmate
-     * @return True if the specified team is in checkmate
+     * Helper: Does the specified team have at least one legal move?
+     * This de-duplicates the "scan board and collect valid moves" logic used by
+     * both checkmate and stalemate.
      */
-    public boolean isInCheckmate(TeamColor teamColor) {
-        //if we can't make any valid moves and we are also in check then boom checkmate
-        boolean noValidMoves = false;
-        Collection<ChessMove> totalValidMoves = new ArrayList<>();
+    private boolean hasAnyValidMove(TeamColor teamColor) {
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 ChessPosition currentPosition = new ChessPosition(i, j);
@@ -182,18 +178,27 @@ public class ChessGame {
                 if (currentPiece == null) {
                     continue;
                 }
-                //if our piece is the color we are checking then we are going to grab all of his valid moves
-                //we add those to our total valid moves collection
                 if (currentPiece.getTeamColor() == teamColor) {
-                    totalValidMoves.addAll(validMoves(currentPosition));
+                    Collection<ChessMove> moves = validMoves(currentPosition);
+                    if (moves != null && !moves.isEmpty()) {
+                        return true;
+                    }
                 }
             }
         }
-        //only if there is no valid moves then are we in stalemate
-        if (totalValidMoves.isEmpty()) {
-            noValidMoves = true;
-        }
-        return  noValidMoves && isInCheck(teamColor);
+        return false;
+    }
+
+    /**
+     * Determines if the given team is in checkmate
+     *
+     * @param teamColor which team to check for checkmate
+     * @return True if the specified team is in checkmate
+     */
+    public boolean isInCheckmate(TeamColor teamColor) {
+        //if we can't make any valid moves and we are also in check then boom checkmate
+        boolean noValidMoves = !hasAnyValidMove(teamColor);
+        return noValidMoves && isInCheck(teamColor);
     }
 
     /**
@@ -204,30 +209,10 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        boolean stale = false;
         if (isInCheck(teamColor)) {
-            return stale;
+            return false;
         }
-        Collection<ChessMove> totalValidMoves = new ArrayList<>();
-        for (int i = 1; i <= 8; i++) {
-            for (int j = 1; j <= 8; j++) {
-                ChessPosition currentPosition = new ChessPosition(i, j);
-                ChessPiece currentPiece = gameBoard.getPiece(currentPosition);
-                if (currentPiece == null) {
-                    continue;
-                }
-                //if our piece is the color we are checking then we are going to grab all of his valid moves
-                //we add those to our total valid moves collection
-                if (currentPiece.getTeamColor() == teamColor) {
-                    totalValidMoves.addAll(validMoves(currentPosition));
-                }
-            }
-        }
-        //only if there is no valid moves then are we in stalemate
-        if (totalValidMoves.isEmpty()) {
-            stale = true;
-        }
-        return stale;
+        return !hasAnyValidMove(teamColor);
     }
 
     /**

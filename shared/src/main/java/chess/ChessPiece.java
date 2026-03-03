@@ -69,23 +69,22 @@ public class ChessPiece {
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
      * danger
-     *
-     * @return Collection of valid moves
+     * return Collection of valid moves
      */
 
     //for king and knight
     private void relativeToGlobal(ChessBoard board, ChessPosition myPosition,
                                   int[][] relativeMoves, Collection<ChessMove> out) {
         for (int[] move : relativeMoves) {
-            int Row = myPosition.getRow() + move[0];
-            int Col = myPosition.getColumn() + move[1];
+            int row = myPosition.getRow() + move[0];
+            int col = myPosition.getColumn() + move[1];
 
             // if that move is off the board then go to next move
-            if (Col > 8 || Col < 1 || Row > 8 || Row < 1) {
+            if (col > 8 || col < 1 || row > 8 || row < 1) {
                 continue;
             }
 
-            ChessPosition globalPosMove = new ChessPosition(Row, Col);
+            ChessPosition globalPosMove = new ChessPosition(row, col);
 
             // if there is a piece there then go to next move
             if (board.getPiece(globalPosMove) != null
@@ -114,15 +113,15 @@ public class ChessPiece {
                     break;
                 }
 
-                int Row = myPosition.getRow() + (rowMove * dist);
-                int Col = myPosition.getColumn() + (colMove * dist);
+                int row = myPosition.getRow() + (rowMove * dist);
+                int col = myPosition.getColumn() + (colMove * dist);
 
                 //going off of the board so break
-                if (Col > 8 || Col < 1 || Row > 8 || Row < 1) {
+                if (col > 8 || col < 1 || row > 8 || row < 1) {
                     break;
                 }
 
-                ChessPosition globalPosMove = new ChessPosition(Row, Col);
+                ChessPosition globalPosMove = new ChessPosition(row, col);
 
                 //hit one of our piece so break
                 if (board.getPiece(globalPosMove) != null
