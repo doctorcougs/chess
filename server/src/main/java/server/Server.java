@@ -51,6 +51,15 @@ public class Server {
         return e.getMessage() == null ? "" : e.getMessage().toLowerCase();
     }
 
+    private int getUnauthorizedOrMissingStatus(String msg) {
+        if (msg.contains("unauthorized")) {
+            return 401;
+        } else if (msg.contains("missing")) {
+            return 400;
+        }
+        return 500;
+    }
+
     private int getJoinGameStatus(String msg) {
         if (msg.contains("unauthorized")) {
             return 401;
@@ -100,9 +109,7 @@ public class Server {
             var result = createGameService.createGame(authToken, request);
             ctx.status(200).contentType("application/json").result(gson.toJson(result));
         } catch (DataAccessException e) {
-            String msg = getMsgLower(e);
-            int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
-            error(ctx, status, e.getMessage());
+            error(ctx, getUnauthorizedOrMissingStatus(getMsgLower(e)), e.getMessage());
         }
     }
 
@@ -136,9 +143,7 @@ public class Server {
             var result = loginService.login(request);
             ctx.status(200).contentType("application/json").result(gson.toJson(result));
         } catch (DataAccessException e) {
-            String msg = getMsgLower(e);
-            int status = msg.contains("unauthorized") ? 401 : (msg.contains("missing") ? 400 : 500);
-            error(ctx, status, e.getMessage());
+            error(ctx, getUnauthorizedOrMissingStatus(getMsgLower(e)), e.getMessage());
         }
     }
 

@@ -117,70 +117,69 @@ public class ChessPiece {
         }
     }
 
+    private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> out = new ArrayList<>();
+        int direction = (team == ChessGame.TeamColor.WHITE) ? 1 : -1;
+        int startRow = (team == ChessGame.TeamColor.WHITE) ? 2 : 7;
+        int promotionRow = (team == ChessGame.TeamColor.WHITE) ? 8 : 1;
+
+        int newRow = myPosition.getRow() + direction;
+        if (newRow < 1 || newRow > 8) {
+            return out;
+        }
+
+        ChessPosition moveOne = new ChessPosition(newRow, myPosition.getColumn());
+        if (board.getPiece(moveOne) == null) {
+            if (newRow == promotionRow) {
+                addPromotionMoves(myPosition, moveOne, out);
+            } else {
+                out.add(new ChessMove(myPosition, moveOne, null));
+            }
+            if (myPosition.getRow() == startRow) {
+                ChessPosition moveTwo = new ChessPosition(newRow + direction, myPosition.getColumn());
+                if (board.getPiece(moveTwo) == null) {
+                    out.add(new ChessMove(myPosition, moveTwo, null));
+                }
+            }
+        }
+
+        if (myPosition.getColumn() < 8) {
+            ChessPosition rightAttack = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
+            addPawnAttack(board, myPosition, rightAttack, promotionRow, newRow, out);
+        }
+        if (myPosition.getColumn() > 1) {
+            ChessPosition leftAttack = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
+            addPawnAttack(board, myPosition, leftAttack, promotionRow, newRow, out);
+        }
+
+        return out;
+    }
+
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> out = new ArrayList<>();
         switch (type) {
             case KING -> {
                 int[][] relativeMoves = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
                 relativeToGlobal(board, myPosition, relativeMoves, out);
-                return out;
             }
             case QUEEN -> {
                 int[][] directionality = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
                 directionalityToMoves(board, myPosition, directionality, out);
-                return out;
             }
             case ROOK -> {
                 int[][] directionality = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
                 directionalityToMoves(board, myPosition, directionality, out);
-                return out;
             }
             case BISHOP -> {
                 int[][] directionality = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
                 directionalityToMoves(board, myPosition, directionality, out);
-                return out;
             }
             case KNIGHT -> {
                 int[][] relativeMoves = {{2, 1}, {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}, {1, -2}, {2, -1}};
                 relativeToGlobal(board, myPosition, relativeMoves, out);
-                return out;
             }
             case PAWN -> {
-                int direction = (team == ChessGame.TeamColor.WHITE) ? 1 : -1;
-                int startRow = (team == ChessGame.TeamColor.WHITE) ? 2 : 7;
-                int promotionRow = (team == ChessGame.TeamColor.WHITE) ? 8 : 1;
-
-                int newRow = myPosition.getRow() + direction;
-                if (newRow < 1 || newRow > 8) {
-                    return out;
-                }
-
-                ChessPosition moveOne = new ChessPosition(newRow, myPosition.getColumn());
-                if (board.getPiece(moveOne) == null) {
-                    if (newRow == promotionRow) {
-                        addPromotionMoves(myPosition, moveOne, out);
-                    } else {
-                        out.add(new ChessMove(myPosition, moveOne, null));
-                    }
-                    if (myPosition.getRow() == startRow) {
-                        ChessPosition moveTwo = new ChessPosition(newRow + direction, myPosition.getColumn());
-                        if (board.getPiece(moveTwo) == null) {
-                            out.add(new ChessMove(myPosition, moveTwo, null));
-                        }
-                    }
-                }
-
-                if (myPosition.getColumn() < 8) {
-                    ChessPosition rightAttack = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
-                    addPawnAttack(board, myPosition, rightAttack, promotionRow, newRow, out);
-                }
-
-                if (myPosition.getColumn() > 1) {
-                    ChessPosition leftAttack = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
-                    addPawnAttack(board, myPosition, leftAttack, promotionRow, newRow, out);
-                }
-
-                return out;
+                return pawnMoves(board, myPosition);
             }
         }
         return out;
