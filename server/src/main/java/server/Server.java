@@ -11,7 +11,7 @@ import service.CreateUser;
 import service.CreateGameService;
 import service.ListGamesService;
 import service.JoinGameService;
-
+import service.LoginService;
 
 import java.util.Map;
 
@@ -24,6 +24,8 @@ public class Server {
     private final CreateGameService createGameService = new CreateGameService(dataAccess);
     private final ListGamesService listGamesService = new ListGamesService(dataAccess);
     private final JoinGameService joinGameService = new JoinGameService(dataAccess);
+    private final LoginService loginService = new LoginService(dataAccess);
+
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
@@ -117,6 +119,27 @@ public class Server {
                         msg.contains("unauthorized") ? 401 :
                                 (msg.contains("missing") || msg.contains("invalid") || msg.contains("not found")) ? 400 :
                                         msg.contains("taken") ? 403 : 500;
+
+                ctx.status(status).contentType("application/json")
+                        .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            } catch (Exception e) {
+                ctx.status(500).contentType("application/json")
+                        .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
+            }
+        });
+
+        javalin.post("/session", ctx -> {
+            try {
+                LoginService.LoginRequest request =
+                        gson.fromJson(ctx.body(), LoginService.LoginRequest.class);
+
+                var result = loginService.login(request);
+                ctx.status(200).contentType("application/json").result(gson.toJson(result));
+            } catch (DataAccessException e) {
+                String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+                int status =
+                        msg.contains("unauthorized") ? 401 :
+                                msg.contains("missing") ? 400 : 500;
 
                 ctx.status(status).contentType("application/json")
                         .result(gson.toJson(Map.of("message", "Error: " + e.getMessage())));
