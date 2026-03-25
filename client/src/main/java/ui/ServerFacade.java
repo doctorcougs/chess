@@ -25,16 +25,25 @@ public class ServerFacade {
             throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
         }
     }
-//    public AuthData register(UserData user) throws Exception{
-//        HttpRequest httpRequest =
-//                HttpRequest.newBuilder().uri(URI.create(Url + "/session")).POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(user))).header("Content-Type", "application/json").build();
-//
-//        HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
-//
-//        if (httpResponse.statusCode() == 200){
-//            return new Gson().fromJson(httpResponse.body(), AuthData.class);
-//        } else {
-//            throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
-//        }
-//    }
+
+    public AuthData register(UserData user)  throws Exception{
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(Url + "/user")).POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(user))).header("Content-Type", "application/json").build();
+
+        HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (httpResponse.statusCode() == 200){
+            return new Gson().fromJson(httpResponse.body(), AuthData.class);
+        } else {
+            throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
+        }
+    }
+    public void clear()  throws Exception {
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(Url + "/db")).method("DELETE", HttpRequest.BodyPublishers.noBody()).build();
+
+        HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        if (httpResponse.statusCode() != 200) {
+            throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
+
+        }
+    }
 }

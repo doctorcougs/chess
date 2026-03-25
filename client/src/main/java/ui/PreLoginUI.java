@@ -6,7 +6,7 @@ import model.*;
 import java.util.Scanner;
 
 public class PreLoginUI {
-    private static ServerFacade serverFacade = new ServerFacade("https://localhost:8080");
+    private static ServerFacade serverFacade = new ServerFacade("http://localhost:8080");
     private static Scanner scanner = new Scanner(System.in);
     private static boolean loggedIn = false;
     private static AuthData authData = null;
