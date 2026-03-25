@@ -37,6 +37,7 @@ public class ServerFacade {
             throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
         }
     }
+
     public void clear()  throws Exception {
         HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(Url + "/db")).method("DELETE", HttpRequest.BodyPublishers.noBody()).build();
 
@@ -44,6 +45,18 @@ public class ServerFacade {
         if (httpResponse.statusCode() != 200) {
             throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
 
+        }
+    }
+
+    public GameData createGame(String authToken, GameData game) throws Exception {
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(Url + "/game")).POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(game))).header("Content-Type", "application/json").header("Authorization", authToken).build();
+
+        HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (httpResponse.statusCode() == 200){
+            return new Gson().fromJson(httpResponse.body(), GameData.class);
+        } else {
+            throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
         }
     }
 }

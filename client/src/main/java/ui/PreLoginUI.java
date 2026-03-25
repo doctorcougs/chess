@@ -11,7 +11,7 @@ public class PreLoginUI {
     private static boolean loggedIn = false;
     private static AuthData authData = null;
 
-    public static void run(){
+    public static void run() throws Exception{
         System.out.println("Welcome to 240 Chess. Please type help to get started.");
         while (!loggedIn) {
             String input = scanner.nextLine();
@@ -31,7 +31,7 @@ public class PreLoginUI {
                 default -> System.out.println("Invalid command, valid commands are: help, login, register, quit");
             }
         }
-        PostLoginUI.run(authData);
+        PostLoginUI.run(authData, serverFacade);
     }
     private static void login() {
         try {
@@ -45,8 +45,8 @@ public class PreLoginUI {
             loggedIn = true;
         }
         catch (Exception e) {
+            loggedIn = false;
             System.out.println("Invalid username or password");
-            run();
         }
     }
     private static void register() {
@@ -63,7 +63,7 @@ public class PreLoginUI {
             loggedIn = true;
         }
         catch (Exception e) {
+            loggedIn = false;
             System.out.println("Invalid username or password");
-            run();
         }
     }}

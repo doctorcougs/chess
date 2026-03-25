@@ -11,6 +11,8 @@ public class ServerFacadeTests {
     private static ServerFacade serverFacade;
     private static UserData validUser = new UserData("Cougar", "Cougar", "Cougar@Cougar");
     private static UserData invalidUser = new UserData("Cougar", null, "Cougar@Cougar");
+    GameData validGame = new GameData(1,null, null, "CougarGame", null);
+    GameData invalidGame = new GameData(-1,null, null, "CougarGame", null);
 
 
     @BeforeAll
@@ -50,5 +52,16 @@ public class ServerFacadeTests {
     @Test void testDuplicateRegister() throws Exception {
         serverFacade.register(validUser);
         Assertions.assertThrows(Exception.class, () -> serverFacade.register(validUser));
+    }
+
+    @Test void testPositveCreateGame() throws Exception {
+        AuthData authData = serverFacade.register(validUser);
+        GameData gameData = serverFacade.createGame(authData.authToken(), validGame);
+        Assertions.assertNotNull(gameData);
+    }
+
+    @Test void testNegativeCreateGame() throws Exception {
+        AuthData authData = serverFacade.register(validUser);
+        Assertions.assertThrows(Exception.class, () -> serverFacade.createGame("invalidToken", validGame));
     }
 }
