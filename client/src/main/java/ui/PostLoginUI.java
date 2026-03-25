@@ -1,7 +1,6 @@
 package ui;
 
 import model.*;
-import org.glassfish.grizzly.utils.EchoFilter;
 
 import java.util.Scanner;
 
@@ -26,13 +25,14 @@ public class PostLoginUI {
                 }
                 case "logout" -> PreLoginUI.run();
                 case "create-game" -> createGame(authData, serverFacade);
-                case "list-games" -> listGames();
-                case "play-game" -> playGame();
-                case "observe-game" -> observeGame();
+                case "list-games" -> listGames(authData, serverFacade);
+                case "play-game" -> playGame(authData, serverFacade);
+                case "observe-game" -> observeGame(authData, serverFacade);
                 default -> System.out.println("Invalid command, valid commands are: help, logout, create-game, list-games, play-game, observe-game");
             }
         }
     }
+
     public static void createGame(AuthData authData, ServerFacade serverFacade) throws Exception {
         try {
         System.out.println("Name of game:");
@@ -46,7 +46,28 @@ public class PostLoginUI {
         }
 
     }
-    public static void listGames() {}
-    public static void playGame() {}
-    public static void observeGame() {}
+    public static void listGames(AuthData authData, ServerFacade serverFacade) throws Exception{
+        try {
+            var games = serverFacade.listGames(authData.authToken());
+            int gameIndex = 0;
+            if (games != null) {
+                System.out.println("List of games:");
+                for (GameData game : games.games()) {
+                    System.out.println("Game ID: " + gameIndex);
+                    System.out.println("Game Name: " + game.gameName());
+                    System.out.println("White Player: " + game.whiteUsername());
+                    System.out.println("Black Player: " + game.blackUsername());
+                    System.out.println(" ");
+                    gameIndex++;
+                }
+            } else {
+                System.out.println("No games found");
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Error listing games");
+        }
+    }
+    public static void playGame(AuthData authData, ServerFacade serverFacade) {}
+    public static void observeGame(AuthData authData, ServerFacade serverFacade) {}
 }

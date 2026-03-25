@@ -59,4 +59,16 @@ public class ServerFacade {
             throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
         }
     }
+
+    public ListGamesResult listGames(String authToken) throws Exception {
+        HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(Url + "/game")).GET().header("Authorization", authToken).build();
+
+        HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (httpResponse.statusCode() == 200) {
+            return new Gson().fromJson(httpResponse.body(), ListGamesResult.class);
+        } else {
+            throw new Exception("Error: " + httpResponse.statusCode() + " " + httpResponse.body());
+        }
+    }
 }
