@@ -1,7 +1,10 @@
 package client;
 
+import model.GameData;
+import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
+import ui.ServerFacade;
 
 
 public class ServerFacadeTests {
@@ -22,8 +25,11 @@ public class ServerFacadeTests {
 
 
     @Test
-    public void sampleTest() {
-        Assertions.assertTrue(true);
+    public void testPositiveLogin() {
+        serverFacade.register(validUser);
+        var authData = serverFacade.login(validUser);
+        Assertions.assertNotNull(authData);
     }
+
 
 }
