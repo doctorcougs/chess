@@ -64,4 +64,15 @@ public class ServerFacadeTests {
         AuthData authData = serverFacade.register(validUser);
         Assertions.assertThrows(Exception.class, () -> serverFacade.createGame("invalidToken", validGame));
     }
+
+    @Test void testPositiveListGames() throws Exception {
+        AuthData authData = serverFacade.register(validUser);
+        serverFacade.createGame(authData.authToken(), validGame);
+        var games = serverFacade.listGames(authData.authToken());
+        Assertions.assertNotNull(games);
+    }
+
+    @Test void testNegativeListGames() throws Exception {
+        Assertions.assertThrows(Exception.class, () -> serverFacade.listGames("invalidToken"));
+    }
 }
