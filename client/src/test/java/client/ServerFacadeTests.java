@@ -10,7 +10,7 @@ public class ServerFacadeTests {
     private static Server server;
     private static ServerFacade serverFacade;
     private static UserData validUser = new UserData("Cougar", "Cougar", "Cougar@Cougar");
-    private static UserData invalidUser = new UserData("Cougar", "null", "Cougar@Cougar");
+    private static UserData invalidUser = new UserData("Cougar", null, "Cougar@Cougar");
 
 
     @BeforeAll
@@ -40,16 +40,15 @@ public class ServerFacadeTests {
     }
 
     @Test void testNegativeRegister() throws Exception{
-        serverFacade.register(invalidUser);
-        var authData = serverFacade.login(invalidUser);
-        Assertions.assertNull(authData);
+        Assertions.assertThrows(Exception.class, () -> serverFacade.register(invalidUser));
     }
 
     @Test void testNegativeLogin() throws Exception{
-        serverFacade.register(validUser);
-        var authData = serverFacade.login(invalidUser);
-        Assertions.assertNull(authData);
+        Assertions.assertThrows(Exception.class, () -> serverFacade.login(invalidUser));
     }
 
-
+    @Test void testDuplicateRegister() throws Exception {
+        serverFacade.register(validUser);
+        Assertions.assertThrows(Exception.class, () -> serverFacade.register(validUser));
+    }
 }

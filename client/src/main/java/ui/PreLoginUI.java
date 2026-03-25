@@ -31,6 +31,7 @@ public class PreLoginUI {
                 default -> System.out.println("Invalid command, valid commands are: help, login, register, quit");
             }
         }
+        PostLoginUI.run(authData);
     }
     private static void login() {
         try {
