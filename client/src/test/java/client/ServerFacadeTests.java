@@ -75,4 +75,22 @@ public class ServerFacadeTests {
     @Test void testNegativeListGames() throws Exception {
         Assertions.assertThrows(Exception.class, () -> serverFacade.listGames("invalidToken"));
     }
-}
+
+    @Test void testPositivePlayGame() throws Exception {
+        AuthData authData = serverFacade.register(validUser);
+        GameData gameData = serverFacade.createGame(authData.authToken(), validGame);
+        Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(authData.authToken(), gameData.gameID(), "WHITE"));
+    }
+
+    @Test void testDuplicateTeamPlayGame() throws Exception {
+        AuthData authData = serverFacade.register(validUser);
+        GameData gameData = serverFacade.createGame(authData.authToken(), validGame);
+        serverFacade.joinGame(authData.authToken(), gameData.gameID(), "WHITE");
+        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(authData.authToken(), gameData.gameID(), "WHITE"));
+    }
+
+    @Test void testWrongIDPlayGame() throws Exception{
+        AuthData authData = serverFacade.register(validUser);
+        GameData gameData = serverFacade.createGame(authData.authToken(), validGame);
+        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(authData.authToken(), gameData.gameID() + 1, "WHITE"));
+    }}
