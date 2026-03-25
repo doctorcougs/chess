@@ -1,8 +1,11 @@
 package ui;
 
+import chess.ChessGame;
 import model.*;
 
 import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
 
 
 public class PostLoginUI {
@@ -26,8 +29,8 @@ public class PostLoginUI {
                 case "logout" -> PreLoginUI.run();
                 case "create-game" -> createGame(authData, serverFacade);
                 case "list-games" -> listGames(authData, serverFacade);
-                case "play-game" -> playGame(authData, serverFacade);
-                case "observe-game" -> observeGame(authData, serverFacade);
+                case "play-game" -> playGame(authData, serverFacade, true);
+                case "observe-game" -> playGame(authData, serverFacade, false);
                 default -> System.out.println("Invalid command, valid commands are: help, logout, create-game, list-games, play-game, observe-game");
             }
         }
@@ -49,8 +52,8 @@ public class PostLoginUI {
     public static void listGames(AuthData authData, ServerFacade serverFacade) throws Exception{
         try {
             var games = serverFacade.listGames(authData.authToken());
-            int gameIndex = 0;
-            if (games != null) {
+            int gameIndex = 1;
+            if (games != null && games.games().size() > 0) {
                 System.out.println("List of games:");
                 for (GameData game : games.games()) {
                     System.out.println("Game ID: " + gameIndex);
@@ -68,6 +71,34 @@ public class PostLoginUI {
             System.out.println("Error listing games");
         }
     }
-    public static void playGame(AuthData authData, ServerFacade serverFacade) {}
-    public static void observeGame(AuthData authData, ServerFacade serverFacade) {}
+    public static void playGame(AuthData authData, ServerFacade serverFacade, boolean playing) throws Exception{
+        try {
+            System.out.println("Please enter the game ID you want to play:");
+            var games = serverFacade.listGames(authData.authToken());
+            Map<Integer, Integer> gameMap = new HashMap<>();
+            int gameIndex = 1;
+            if (games != null && games.games().size() > 0) {
+                for (GameData game : games.games()) {
+                    gameMap.put(gameIndex, game.gameID());
+                    gameIndex++;
+                }
+            }
+
+            System.out.println("Please enter the gameID");
+            int selectedGame = Integer.parseInt(scanner.nextLine());
+            int gameID = gameMap.get(selectedGame);
+
+            if (playing) {
+                System.out.println("Please enter your color, WHITE or BLACK");
+                String color = scanner.nextLine().toUpperCase();
+                serverFacade.joinGame(authData.authToken(), gameID, color);
+            }
+            serverFacade.joinGame(authData.authToken(), gameID, "observer");
+            System.out.println("Game joined");
+            ChessBoardBuilder chessBoard = new ChessBoardBuilder ();
+//            chessBoard.printBoard();
+        } catch (Exception e) {
+            System.out.println("Error joining game, try again please.");
+        }
+    }
 }
