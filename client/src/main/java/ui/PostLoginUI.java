@@ -73,13 +73,14 @@ public class PostLoginUI {
     }
     public static void playGame(AuthData authData, ServerFacade serverFacade, boolean playing) throws Exception{
         try {
-            System.out.println("Please enter the game ID you want to play:");
             var games = serverFacade.listGames(authData.authToken());
             Map<Integer, Integer> gameMap = new HashMap<>();
+            Map<Integer, GameData> gameDataMap = new HashMap<>();
             int gameIndex = 1;
             if (games != null && games.games().size() > 0) {
                 for (GameData game : games.games()) {
                     gameMap.put(gameIndex, game.gameID());
+                    gameDataMap.put(gameIndex, game);
                     gameIndex++;
                 }
             }
@@ -87,18 +88,24 @@ public class PostLoginUI {
             System.out.println("Please enter the gameID");
             int selectedGame = Integer.parseInt(scanner.nextLine());
             int gameID = gameMap.get(selectedGame);
+            GameData gameData = gameDataMap.get(selectedGame);
 
+            String color = "WHITE";
             if (playing) {
                 System.out.println("Please enter your color, WHITE or BLACK");
-                String color = scanner.nextLine().toUpperCase();
+                color = scanner.nextLine().toUpperCase();
                 serverFacade.joinGame(authData.authToken(), gameID, color);
             }
+
             serverFacade.joinGame(authData.authToken(), gameID, "observer");
             System.out.println("Game joined");
             ChessBoardBuilder chessBoard = new ChessBoardBuilder ();
-//            chessBoard.printBoard();
+
+            chessBoard.buildBoard(gameData, color);
+
         } catch (Exception e) {
             System.out.println("Error joining game, try again please.");
+            e.printStackTrace();
         }
     }
 }
