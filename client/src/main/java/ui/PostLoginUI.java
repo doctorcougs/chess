@@ -97,11 +97,12 @@ public class PostLoginUI {
                 serverFacade.joinGame(authData.authToken(), gameID, color);
             }
 
-            serverFacade.joinGame(authData.authToken(), gameID, "observer");
             System.out.println("Game joined");
             ChessBoardBuilder chessBoard = new ChessBoardBuilder ();
 
-            chessBoard.buildBoard(gameData, color);
+            ChessGame chessGame = gameData.game() != null ? gameData.game() : new ChessGame();
+            GameData fullGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), chessGame);
+            chessBoard.buildBoard(fullGameData, color);
 
         } catch (Exception e) {
             System.out.println("Error joining game, try again please.");
