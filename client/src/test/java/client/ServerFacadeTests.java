@@ -93,4 +93,15 @@ public class ServerFacadeTests {
         AuthData authData = serverFacade.register(validUser);
         GameData gameData = serverFacade.createGame(authData.authToken(), validGame);
         Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(authData.authToken(), gameData.gameID() + 1, "WHITE"));
-    }}
+    }
+    @Test void testPositiveLogout() throws Exception {
+        var authData = serverFacade.register(validUser);
+        Assertions.assertDoesNotThrow(()-> serverFacade.logout(authData.authToken()));
+    }
+
+    @Test
+    void negativeLogout() throws Exception {
+        Assertions.assertThrows(Exception.class, () -> serverFacade.logout(null));
+    }
+}
+
