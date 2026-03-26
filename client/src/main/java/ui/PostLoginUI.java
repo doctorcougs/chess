@@ -26,7 +26,7 @@ public class PostLoginUI {
                     System.out.println("observe-game");
 
                 }
-                case "logout" -> PreLoginUI.run();
+                case "logout" -> logout(authData, serverFacade);
                 case "create-game" -> createGame(authData, serverFacade);
                 case "list-games" -> listGames(authData, serverFacade);
                 case "play-game" -> playGame(authData, serverFacade, true);
@@ -107,6 +107,14 @@ public class PostLoginUI {
         } catch (Exception e) {
             System.out.println("Error joining game, try again please.");
             e.printStackTrace();
+        }
+    }
+
+    public static void logout(AuthData authData, ServerFacade serverFacade) throws Exception {
+        try {
+            serverFacade.logout(authData.authToken());
+        }catch (Exception e) {
+            System.out.println("Error logging out");
         }
     }
 }
