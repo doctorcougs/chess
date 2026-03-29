@@ -6,6 +6,7 @@ import model.UserData;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class MySqlDataAccess implements DataAccess {
 
@@ -56,6 +57,15 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void clear() throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            for (var table : new String[]{"auth", "games", "users"}) {
+                try (var ps = conn.prepareStatement("TRUNCATE TABLE " + table)) {
+                    ps.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Clear failed: " + e.getMessage());
+        }
     }
 
     @Override
