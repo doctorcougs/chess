@@ -5,6 +5,7 @@ import dataaccess.MemoryDataAccess;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +21,8 @@ public class LoginServiceTest {
 
     @Test
     void loginSuccessReturnsAuthToken() throws DataAccessException {
-        dataAccess.createUser(new UserData("coug", "pass", "email.com"));
+        String hashed = BCrypt.hashpw("pass", BCrypt.gensalt());
+        dataAccess.createUser(new UserData("coug", hashed, "email.com"));
 
         var result = loginService.login(new LoginService.LoginRequest("coug", "pass"));
 
@@ -32,7 +34,8 @@ public class LoginServiceTest {
 
     @Test
     void loginWrongPasswordThrowsUnauthorized() throws DataAccessException {
-        dataAccess.createUser(new UserData("coug", "pass", "email.com"));
+        String hashed = BCrypt.hashpw("pass", BCrypt.gensalt());
+        dataAccess.createUser(new UserData("coug", hashed, "email.com"));
 
         assertThrows(DataAccessException.class,
                 () -> loginService.login(new LoginService.LoginRequest("coug", "wrong")));
