@@ -3,6 +3,8 @@ package dataaccess;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+
+import java.sql.SQLException;
 import java.util.List;
 
 public interface DataAccess {
