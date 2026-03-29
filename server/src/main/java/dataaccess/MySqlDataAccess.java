@@ -95,6 +95,26 @@ public class MySqlDataAccess implements DataAccess {
         }
         return null;
     }
+    @Override
+    public void createAuth(AuthData auth) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var ps = conn.prepareStatement("INSERT INTO users (username, authToken) VALUES (?, ?)");
+            ps.setString(1, auth.username());
+            ps.setString(2, auth.authToken());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("createAuth failed: " + e.getMessage());
+        }
+    }
+    @Override
+    public AuthData getAuth(String authToken) throws DataAccessException {
+
+    }
+
+    @Override
+    public void deleteAuth(String authToken) throws DataAccessException {
+
+    }
 
     @Override
     public int createGame(GameData game) throws DataAccessException {
@@ -114,18 +134,5 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
-    }
-
-    @Override
-    public void createAuth(AuthData auth) throws DataAccessException {
-    }
-
-    @Override
-    public AuthData getAuth(String authToken) throws DataAccessException {
-        return null;
-    }
-
-    @Override
-    public void deleteAuth(String authToken) throws DataAccessException {
     }
 }
