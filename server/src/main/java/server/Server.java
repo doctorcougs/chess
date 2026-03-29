@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
+import dataaccess.MySqlDataAccess;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import model.UserData;
@@ -19,18 +20,30 @@ import java.util.Map;
 
 public class Server {
     private final Javalin javalin;
-    private final DataAccess dataAccess = new MemoryDataAccess();
+    private final DataAccess dataAccess;
     private final Gson gson = new Gson();
-    private final ClearService clearService = new ClearService(dataAccess);
-    private final CreateUser createUserService = new CreateUser(dataAccess);
-    private final CreateGameService createGameService = new CreateGameService(dataAccess);
-    private final ListGamesService listGamesService = new ListGamesService(dataAccess);
-    private final JoinGameService joinGameService = new JoinGameService(dataAccess);
-    private final LoginService loginService = new LoginService(dataAccess);
-    private final LogoutService logoutService = new LogoutService(dataAccess);
+    private final ClearService clearService;
+    private final CreateUser createUserService;
+    private final CreateGameService createGameService;
+    private final ListGamesService listGamesService;
+    private final JoinGameService joinGameService;
+    private final LoginService loginService;
+    private final LogoutService logoutService;
 
     public Server() {
+        try {
+            dataAccess = new MySqlDataAccess();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Database not initialized: " + e.getMessage());
+        }
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        clearService = new ClearService(dataAccess);
+        createUserService = new CreateUser(dataAccess);
+        createGameService = new CreateGameService(dataAccess);
+        listGamesService = new ListGamesService(dataAccess);
+        joinGameService = new JoinGameService(dataAccess);
+        loginService = new LoginService(dataAccess);
+        logoutService = new LogoutService(dataAccess);
         registerEndpoints();
     }
 
