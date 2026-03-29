@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public class LoginService {
         if (user == null) {
             throw new DataAccessException("Unauthorized");
         }
-        if (!request.password().equals(user.password())) {
+        if (!BCrypt.checkpw(request.password(), user.password())) {
             throw new DataAccessException("Unauthorized");
         }
 
