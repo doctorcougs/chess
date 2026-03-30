@@ -112,4 +112,20 @@ public class MySqlTests {
     void deleteAuthNull() {
         assertDoesNotThrow(() -> dataAccess.deleteAuth("BADCOUG"));
     }
+
+    @Test
+    void updateGameSuccess() throws DataAccessException {
+        int id = dataAccess.createGame(new GameData(0, null, null, "cougGame", new ChessGame()));
+        GameData updated = new GameData(id, "white", "black", "cougGame", new ChessGame());
+        dataAccess.updateGame(updated);
+        GameData result = dataAccess.getGame(id);
+        assertEquals("white", result.whiteUsername());
+        assertEquals("black", result.blackUsername());
+    }
+
+    @Test
+    void updateGameNull() {
+        GameData fake = new GameData(100000, "white", "black", "badCougGame", new ChessGame());
+        assertThrows(DataAccessException.class, () -> dataAccess.updateGame(fake));
+    }
 }
