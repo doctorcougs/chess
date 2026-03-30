@@ -189,4 +189,5 @@ public class MySqlTests {
         dataAccess.clear();
         assertNull(dataAccess.getUser("coug"));
     }
+
 }
