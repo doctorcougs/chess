@@ -99,9 +99,9 @@ public class MySqlDataAccess implements DataAccess {
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var ps = conn.prepareStatement("INSERT INTO auth (username, authToken) VALUES (?, ?)");
-            ps.setString(1, auth.username());
-            ps.setString(2, auth.authToken());
+            var ps = conn.prepareStatement("INSERT INTO auth (authToken, username) VALUES (?, ?)");
+            ps.setString(1, auth.authToken());
+            ps.setString(2, auth.username());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException("createAuth failed: " + e.getMessage());

@@ -109,7 +109,15 @@ public class Server {
             var auth = createUserService.register(request);
             ctx.status(200).contentType("application/json").result(gson.toJson(auth));
         } catch (DataAccessException e) {
-            int status = getMsgLower(e).contains("missing") ? 400 : 403;
+            String msg = getMsgLower(e);
+            int status;
+            if (msg.contains("missing")) {
+                status = 400;
+            } else if (msg.contains("already taken") || msg.contains("taken")) {
+                status = 403;
+            } else {
+                status = 500;
+            }
             error(ctx, status, e.getMessage());
         }
     }

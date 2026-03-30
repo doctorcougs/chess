@@ -1,0 +1,54 @@
+package MySqlTests;
+
+import chess.ChessGame;
+import dataaccess.DataAccessException;
+import dataaccess.MySqlDataAccess;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class MySqlTests {
+
+    private MySqlDataAccess dataAccess;
+
+    @BeforeEach
+    void setup() throws DataAccessException {
+        dataAccess = new MySqlDataAccess();
+        dataAccess.clear();
+    }
+
+    @Test
+    void clearSuccess() throws DataAccessException {
+        dataAccess.createUser(new UserData("cougar", "cougar", "cougar@email.com"));
+        dataAccess.createAuth(new AuthData("cougar", "cougarAuth"));
+        dataAccess.createGame(new GameData(0, null, null, "cougarGame", new ChessGame()));
+
+        dataAccess.clear();
+
+        assertNull(dataAccess.getUser("cougar"));
+        assertNull(dataAccess.getAuth("cougarAuth"));
+        assertTrue(dataAccess.listGames().isEmpty());
+    }
+
+    @Test
+    void createUserSuccess() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        UserData result = dataAccess.getUser("coug");
+        assertNotNull(result);
+        assertEquals("coug", result.username());
+    }
+
+    @Test
+    void noDuplicateUsers() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        assertThrows(DataAccessException.class,
+                () -> dataAccess.createUser(new UserData("coug", "coug2", "coug2@byu.edu")));
+    }
+}
