@@ -11,12 +11,12 @@ import java.util.HashMap;
 public class PostLoginUI {
     private static Scanner scanner = new Scanner(System.in);
 
-    public static void run(AuthData authData, ServerFacade serverFacade) throws Exception{
+    public static void run(AuthData authData, ServerFacade serverFacade) throws Exception {
         System.out.println("Welcome " + authData.username() + "!");
         System.out.println("Type help to get started.");
         while (true) {
             String input = scanner.nextLine();
-            switch(input) {
+            switch (input) {
                 case "help" -> {
                     System.out.println("help");
                     System.out.println("logout");
@@ -24,32 +24,32 @@ public class PostLoginUI {
                     System.out.println("list-games");
                     System.out.println("play-game");
                     System.out.println("observe-game");
-
                 }
                 case "logout" -> logout(authData, serverFacade);
                 case "create-game" -> createGame(authData, serverFacade);
                 case "list-games" -> listGames(authData, serverFacade);
                 case "play-game" -> playGame(authData, serverFacade, true);
                 case "observe-game" -> playGame(authData, serverFacade, false);
-                default -> System.out.println("Invalid command, valid commands are: help, logout, create-game, list-games, play-game, observe-game");
+                default -> System.out.println(
+                        "Invalid command, valid commands are: help, logout, create-game, list-games, play-game, observe-game"
+                );
             }
         }
     }
 
     public static void createGame(AuthData authData, ServerFacade serverFacade) throws Exception {
         try {
-        System.out.println("Name of game:");
-        String gameName = scanner.nextLine();
-        GameData gameData = new GameData(0, null, null, gameName, null);
-
-        serverFacade.createGame(authData.authToken(), gameData);
-        System.out.println("Game Created");
+            System.out.println("Name of game:");
+            String gameName = scanner.nextLine();
+            GameData gameData = new GameData(0, null, null, gameName, null);
+            serverFacade.createGame(authData.authToken(), gameData);
+            System.out.println("Game Created");
         } catch (Exception e) {
             System.out.println("Invalid game data, try again");
         }
-
     }
-    public static void listGames(AuthData authData, ServerFacade serverFacade) throws Exception{
+
+    public static void listGames(AuthData authData, ServerFacade serverFacade) throws Exception {
         try {
             var games = serverFacade.listGames(authData.authToken());
             int gameIndex = 1;
@@ -66,12 +66,12 @@ public class PostLoginUI {
             } else {
                 System.out.println("No games found");
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Error listing games");
         }
     }
-    public static void playGame(AuthData authData, ServerFacade serverFacade, boolean playing) throws Exception{
+
+    public static void playGame(AuthData authData, ServerFacade serverFacade, boolean playing) throws Exception {
         try {
             var games = serverFacade.listGames(authData.authToken());
             Map<Integer, Integer> gameMap = new HashMap<>();
@@ -98,10 +98,15 @@ public class PostLoginUI {
             }
 
             System.out.println("Game joined");
-            ChessBoardBuilder chessBoard = new ChessBoardBuilder ();
-
+            ChessBoardBuilder chessBoard = new ChessBoardBuilder();
             ChessGame chessGame = gameData.game() != null ? gameData.game() : new ChessGame();
-            GameData fullGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), chessGame);
+            GameData fullGameData = new GameData(
+                    gameData.gameID(),
+                    gameData.whiteUsername(),
+                    gameData.blackUsername(),
+                    gameData.gameName(),
+                    chessGame
+            );
             chessBoard.buildBoard(fullGameData, color);
 
         } catch (Exception e) {
@@ -113,7 +118,7 @@ public class PostLoginUI {
     public static void logout(AuthData authData, ServerFacade serverFacade) throws Exception {
         try {
             serverFacade.logout(authData.authToken());
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Error logging out");
         }
     }

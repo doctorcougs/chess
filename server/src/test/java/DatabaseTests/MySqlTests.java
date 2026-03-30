@@ -1,4 +1,4 @@
-package MySqlTests;
+package DatabaseTests;
 
 import chess.ChessGame;
 import dataaccess.DataAccessException;

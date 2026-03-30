@@ -23,7 +23,7 @@ public class ChessBoardBuilder {
         ChessBoard board = game.getBoard();
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
-        if (color == "WHITE") {
+        if ("WHITE".equals(color)) {
             printBoard(out, board, false);
         } else {
             printBoard(out, board, true);
