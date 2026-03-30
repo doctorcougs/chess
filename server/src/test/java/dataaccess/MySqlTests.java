@@ -1,4 +1,4 @@
-package DatabaseTests;
+package dataaccess;
 
 import chess.ChessGame;
 import dataaccess.DataAccessException;
