@@ -51,4 +51,19 @@ public class MySqlTests {
         assertThrows(DataAccessException.class,
                 () -> dataAccess.createUser(new UserData("coug", "coug2", "coug2@byu.edu")));
     }
+
+    @Test
+    void getUserSuccess() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        UserData result = dataAccess.getUser("coug");
+        assertNotNull(result);
+        assertEquals("coug@byu.edu", result.email());
+        assertTrue(BCrypt.checkpw("coug", result.password()));
+    }
+
+    @Test
+    void getUserNull() throws DataAccessException {
+        UserData result = dataAccess.getUser("nonexistent");
+        assertNull(result);
+    }
 }
