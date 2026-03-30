@@ -66,4 +66,50 @@ public class MySqlTests {
         UserData result = dataAccess.getUser("nonexistent");
         assertNull(result);
     }
+
+    @Test
+    void createAuthSuccess() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        dataAccess.createAuth(new AuthData("coug", "cougAuth"));
+        AuthData result = dataAccess.getAuth("cougAuth");
+        assertNotNull(result);
+        assertEquals("coug", result.username());
+    }
+
+    @Test
+    void createAuthDuplicate() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        dataAccess.createAuth(new AuthData("coug", "cougAuth"));
+        assertThrows(DataAccessException.class,
+                () -> dataAccess.createAuth(new AuthData("coug", "cougAuth")));
+    }
+
+    @Test
+    void getAuthSuccess() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        dataAccess.createAuth(new AuthData("coug", "cougAuth"));
+        AuthData result = dataAccess.getAuth("cougAuth");
+        assertNotNull(result);
+        assertEquals("cougAuth", result.authToken());
+        assertEquals("coug", result.username());
+    }
+
+    @Test
+    void getAuthNull() throws DataAccessException {
+        AuthData result = dataAccess.getAuth("BADCOUG");
+        assertNull(result);
+    }
+
+    @Test
+    void deleteAuthSuccess() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        dataAccess.createAuth(new AuthData("coug", "cougAuth"));
+        dataAccess.deleteAuth("cougAuth");
+        assertNull(dataAccess.getAuth("cougAuth"));
+    }
+
+    @Test
+    void deleteAuthNull() {
+        assertDoesNotThrow(() -> dataAccess.deleteAuth("BADCOUG"));
+    }
 }
