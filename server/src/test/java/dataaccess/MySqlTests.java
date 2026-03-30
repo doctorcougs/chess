@@ -128,4 +128,65 @@ public class MySqlTests {
         GameData fake = new GameData(100000, "white", "black", "badCougGame", new ChessGame());
         assertThrows(DataAccessException.class, () -> dataAccess.updateGame(fake));
     }
+
+    @Test
+    void createHashedPass() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        UserData result = dataAccess.getUser("coug");
+        assertNotNull(result);
+        assertNotEquals("coug", result.password());
+        assertTrue(BCrypt.checkpw("coug", result.password()));
+    }
+
+    @Test
+    void createMultipleAuths() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "coug", "coug@byu.edu"));
+        dataAccess.createAuth(new AuthData("coug", "cougAuth1"));
+        dataAccess.createAuth(new AuthData("coug", "cougAuth2"));
+        assertNotNull(dataAccess.getAuth("cougAuth1"));
+        assertNotNull(dataAccess.getAuth("cougAuth2"));
+    }
+
+    @Test
+    void updateGamePersistsPlayers() throws DataAccessException {
+        int id = dataAccess.createGame(new GameData(0, null, null, "cougarGame", new ChessGame()));
+        dataAccess.updateGame(new GameData(id, "white", "black", "cougarGame", new ChessGame()));
+        GameData result = dataAccess.getGame(id);
+        assertEquals("white", result.whiteUsername());
+        assertEquals("black", result.blackUsername());
+    }
+
+    @Test
+    void updateGameNotFoundThrows() {
+        assertThrows(DataAccessException.class,
+                () -> dataAccess.updateGame(new GameData(99999, "white", "black", "FakeGame", new ChessGame())));
+    }
+
+    @Test
+    void updateGamePersists() throws DataAccessException {
+        ChessGame chessGame = new ChessGame();
+        int id = dataAccess.createGame(new GameData(0, null, null, "CougarGame", chessGame));
+        ChessGame updatedGame = new ChessGame();
+        updatedGame.setTeamTurn(ChessGame.TeamColor.BLACK);
+        dataAccess.updateGame(new GameData(id, null, null, "CougarGame", updatedGame));
+        GameData result = dataAccess.getGame(id);
+        assertNotNull(result.game());
+        assertEquals(ChessGame.TeamColor.BLACK, result.game().getTeamTurn());
+    }
+
+    @Test
+    void listGamesContainsCorrectNames() throws DataAccessException {
+        dataAccess.createGame(new GameData(0, null, null, "cougarA", new ChessGame()));
+        dataAccess.createGame(new GameData(0, null, null, "cougarB", new ChessGame()));
+        List<GameData> games = dataAccess.listGames();
+        assertTrue(games.stream().anyMatch(g -> g.gameName().equals("cougarA")));
+        assertTrue(games.stream().anyMatch(g -> g.gameName().equals("cougarB")));
+    }
+
+    @Test
+    void getUserAfterClearReturnsNull() throws DataAccessException {
+        dataAccess.createUser(new UserData("coug", "pass", "coug@byu.edu"));
+        dataAccess.clear();
+        assertNull(dataAccess.getUser("coug"));
+    }
 }
