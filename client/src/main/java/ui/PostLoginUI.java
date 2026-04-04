@@ -12,9 +12,10 @@ public class PostLoginUI {
     private static Scanner scanner = new Scanner(System.in);
 
     public static void run(AuthData authData, ServerFacade serverFacade) throws Exception {
+        boolean loggedIn = true;
         System.out.println("Welcome " + authData.username() + "!");
         System.out.println("Type help to get started.");
-        while (true) {
+        while (loggedIn) {
             String input = scanner.nextLine();
             switch (input) {
                 case "help" -> {
@@ -25,7 +26,10 @@ public class PostLoginUI {
                     System.out.println("play-game");
                     System.out.println("observe-game");
                 }
-                case "logout" -> logout(authData, serverFacade);
+                case "logout" -> {
+                    logout(authData, serverFacade);
+                    loggedIn = false;
+                }
                 case "create-game" -> createGame(authData, serverFacade);
                 case "list-games" -> listGames(authData, serverFacade);
                 case "play-game" -> playGame(authData, serverFacade, true);
@@ -35,6 +39,7 @@ public class PostLoginUI {
                 );
             }
         }
+        PreLoginUI.run();
     }
 
     public static void createGame(AuthData authData, ServerFacade serverFacade) throws Exception {
@@ -111,13 +116,13 @@ public class PostLoginUI {
 
         } catch (Exception e) {
             System.out.println("Error joining game, try again please.");
-            e.printStackTrace();
         }
     }
 
     public static void logout(AuthData authData, ServerFacade serverFacade) throws Exception {
         try {
             serverFacade.logout(authData.authToken());
+            System.out.println("Logged out");
         } catch (Exception e) {
             System.out.println("Error logging out");
         }

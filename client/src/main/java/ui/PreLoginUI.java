@@ -12,6 +12,7 @@ public class PreLoginUI {
     private static AuthData authData = null;
 
     public static void run() throws Exception{
+        loggedIn = false;
         System.out.println("Welcome to 240 Chess. Please type help to get started.");
         while (!loggedIn) {
             String input = scanner.nextLine();

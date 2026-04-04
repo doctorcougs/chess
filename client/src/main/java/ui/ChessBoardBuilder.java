@@ -47,8 +47,8 @@ public class ChessBoardBuilder {
         for (int row : rows) {
             out.print(SET_BG_COLOR_RED + SET_TEXT_COLOR_BLACK + " " + row + " ");
             for (int col = flipped ? 8 : 1; flipped ? col >= 1 : col <= 8; col += flipped ? -1 : 1) {
-                boolean isLight = (row + col) % 2 == 0;
-                out.print(isLight ? SET_BG_COLOR_WHITE : SET_BG_COLOR_BLUE);
+                boolean isDark = (row + col) % 2 == 0;
+                out.print(isDark ? SET_BG_COLOR_BLUE : SET_BG_COLOR_WHITE);
                 ChessPiece piece = board.getPiece(new chess.ChessPosition(row, col));
                 out.print(getPieceSymbol(piece));
             }
