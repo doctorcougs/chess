@@ -47,7 +47,7 @@ public class PostLoginUI {
         if (postLogin == false && playing == false) {
             PreLoginUI.run();
         } else if (playing == true){
-            GameplayUI.run();
+//            GameplayUI.run();
         }
     }
 
