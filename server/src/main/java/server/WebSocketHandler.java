@@ -154,6 +154,40 @@ public class WebSocketHandler {
         }
     }
 
+    //leave da game
+    private void handleLeave(WsContext ctx, UserGameCommand command) {
+        try {
+            AuthData auth = dataAccess.getAuth(command.getAuthToken());
+            if (auth == null) {
+                sendError(ctx, "Error: unauthorized");
+                return;
+            }
+            GameData gameData = dataAccess.getGame(command.getGameID());
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
+
+            String white = gameData.whiteUsername();
+            String black = gameData.blackUsername();
+            if (auth.username().equals(white)) { white = null; }
+            else if (auth.username().equals(black)) { black = null; }
+
+            dataAccess.updateGame(new GameData(
+                    gameData.gameID(), white, black, gameData.gameName(), gameData.game()
+            ));
+
+            Set<WsContext> sessions = gameSessions.get(command.getGameID());
+            if (sessions != null) { sessions.remove(ctx); }
+
+            broadcastToAll(command.getGameID(),
+                    gson.toJson(new NotificationMessage(auth.username() + " left the game")));
+
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
+    }
+
     // Helper functions:
 
     private void sendMessage(WsContext ctx, String message) {
