@@ -10,6 +10,7 @@ import java.util.*;
  */
 public class ChessGame {
 
+    public boolean isOver = false;
     private TeamColor teamTurn;
     private ChessBoard gameBoard;
 
@@ -231,6 +232,11 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return gameBoard;
+    }
+
+    // isOver is for the websocket handler
+    public void setOver(boolean over) {
+        isOver = over;
     }
 
     @Override

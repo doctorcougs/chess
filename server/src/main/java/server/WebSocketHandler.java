@@ -80,6 +80,80 @@ public class WebSocketHandler {
         }
     }
 
+
+    //Make  move
+    private void handleMakeMove(WsContext ctx, MakeMoveCommand command) {
+        try {
+            AuthData auth = dataAccess.getAuth(command.getAuthToken());
+            if (auth == null) {
+                sendError(ctx, "Error: unauthorized");
+                return;
+            }
+            GameData gameData = dataAccess.getGame(command.getGameID());
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
+
+            ChessGame game = gameData.game();
+
+            if (game.isOver()) {
+                sendError(ctx, "Error: game is already over");
+                return;
+            }
+
+            ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), gameData);
+            if (playerColor == null) {
+                sendError(ctx, "Error: you are not a player in this game");
+                return;
+            }
+            if (game.getTeamTurn() != playerColor) {
+                sendError(ctx, "Error: it is not your turn");
+                return;
+            }
+
+            ChessMove move = command.getMove();
+            game.makeMove(move);
+
+            GameData updatedGame = new GameData(
+                    gameData.gameID(), gameData.whiteUsername(),
+                    gameData.blackUsername(), gameData.gameName(), game
+            );
+            dataAccess.updateGame(updatedGame);
+
+            String loadMsg = gson.toJson(new LoadGameMessage(game));
+            broadcastToAll(command.getGameID(), loadMsg);
+
+            String moveDesc = auth.username() + " moved " + move.getStartPosition() + " to " + move.getEndPosition();
+            broadcastToOthers(command.getGameID(), ctx, gson.toJson(new NotificationMessage(moveDesc)));
+
+            ChessGame.TeamColor opponent = (playerColor == ChessGame.TeamColor.WHITE)
+                    ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+
+            if (game.isInCheckmate(opponent)) {
+                game.setOver(true);
+                dataAccess.updateGame(new GameData(gameData.gameID(), gameData.whiteUsername(),
+                        gameData.blackUsername(), gameData.gameName(), game));
+                broadcastToAll(command.getGameID(),
+                        gson.toJson(new NotificationMessage(opponent + " is in checkmate! Game over.")));
+            } else if (game.isInStalemate(opponent)) {
+                game.setOver(true);
+                dataAccess.updateGame(new GameData(gameData.gameID(), gameData.whiteUsername(),
+                        gameData.blackUsername(), gameData.gameName(), game));
+                broadcastToAll(command.getGameID(),
+                        gson.toJson(new NotificationMessage("Stalemate! Game over.")));
+            } else if (game.isInCheck(opponent)) {
+                broadcastToAll(command.getGameID(),
+                        gson.toJson(new NotificationMessage(opponent + " is in check!")));
+            }
+
+        } catch (chess.InvalidMoveException e) {
+            sendError(ctx, "Error: invalid move");
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
+    }
+
     // Helper functions:
 
     private void sendMessage(WsContext ctx, String message) {
@@ -104,5 +178,11 @@ public class WebSocketHandler {
                     .filter(s -> !s.equals(exclude))
                     .forEach(s -> s.send(message));
         }
+    }
+
+    private ChessGame.TeamColor getPlayerColor(String username, GameData game) {
+        if (username.equals(game.whiteUsername())) { return ChessGame.TeamColor.WHITE; }
+        if (username.equals(game.blackUsername())) { return ChessGame.TeamColor.BLACK; }
+        return null;
     }
 }
