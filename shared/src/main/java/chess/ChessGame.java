@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class ChessGame {
 
-    public boolean isOver = false;
+    private boolean gameOver = false;
     private TeamColor teamTurn;
     private ChessBoard gameBoard;
 
@@ -234,10 +234,15 @@ public class ChessGame {
         return gameBoard;
     }
 
-    // isOver is for the websocket handler
+    // gameOver is for the websocket handler
     public void setOver(boolean over) {
-        isOver = over;
+        gameOver = over;
     }
+
+    public boolean isOver() {
+        return gameOver;
+    }
+
 
     @Override
     public boolean equals(Object o) {
