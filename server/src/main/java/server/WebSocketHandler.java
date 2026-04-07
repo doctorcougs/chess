@@ -47,5 +47,62 @@ public class WebSocketHandler {
         gameSessions.values().forEach(sessions -> sessions.remove(ctx));
     }
 
+    // connecting to game
+    private void handleConnect(WsContext ctx, UserGameCommand command) {
+        try {
+            AuthData auth = dataAccess.getAuth(command.getAuthToken());
+            if (auth == null) {
+                sendError(ctx, "Error: unauthorized auth token");
+                return;
+            }
+            GameData game = dataAccess.getGame(command.getGameID());
+            if (game == null) {
+                sendError(ctx, "Error: no game found");
+                return;
+            }
 
+            gameSessions.computeIfAbsent(command.getGameID(), k -> ConcurrentHashMap.newKeySet()).add(ctx);
+
+            sendMessage(ctx, gson.toJson(new LoadGameMessage(game.game())));
+
+            String team;
+            if (auth.username().equals(game.whiteUsername())) {
+                team = auth.username() + " is WHITE";
+            } else if (auth.username().equals(game.blackUsername())) {
+                team = auth.username() + " is BLACK";
+            } else {
+                team = auth.username() + " is an observer";
+            }
+            broadcastToOthers(command.getGameID(), ctx, gson.toJson(new NotificationMessage(team)));
+
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
+    }
+
+    // Helper functions:
+
+    private void sendMessage(WsContext ctx, String message) {
+        ctx.send(message);
+    }
+
+    private void sendError(WsContext ctx, String errorMessage) {
+        ctx.send(gson.toJson(new ErrorMessage(errorMessage)));
+    }
+
+    private void broadcastToAll(int gameID, String message) {
+        Set<WsContext> sessions = gameSessions.get(gameID);
+        if (sessions != null) {
+            sessions.forEach(s -> s.send(message));
+        }
+    }
+
+    private void broadcastToOthers(int gameID, WsContext exclude, String message) {
+        Set<WsContext> sessions = gameSessions.get(gameID);
+        if (sessions != null) {
+            sessions.stream()
+                    .filter(s -> !s.equals(exclude))
+                    .forEach(s -> s.send(message));
+        }
+    }
 }
