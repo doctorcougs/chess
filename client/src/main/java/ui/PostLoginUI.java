@@ -12,10 +12,11 @@ public class PostLoginUI {
     private static Scanner scanner = new Scanner(System.in);
 
     public static void run(AuthData authData, ServerFacade serverFacade) throws Exception {
-        boolean loggedIn = true;
+        boolean postLogin = true;
+        boolean playing = false;
         System.out.println("Welcome " + authData.username() + "!");
         System.out.println("Type help to get started.");
-        while (loggedIn) {
+        while (postLogin) {
             String input = scanner.nextLine();
             switch (input) {
                 case "help" -> {
@@ -28,18 +29,26 @@ public class PostLoginUI {
                 }
                 case "logout" -> {
                     logout(authData, serverFacade);
-                    loggedIn = false;
+                    postLogin = false;
                 }
                 case "create-game" -> createGame(authData, serverFacade);
                 case "list-games" -> listGames(authData, serverFacade);
-                case "play-game" -> playGame(authData, serverFacade, true);
+                case "play-game" -> {
+                        playGame(authData, serverFacade, true);
+                        postLogin = false;
+                        playing = true;
+                }
                 case "observe-game" -> playGame(authData, serverFacade, false);
                 default -> System.out.println(
                         "Invalid command, valid commands are: help, logout, create-game, list-games, play-game, observe-game"
                 );
             }
         }
-        PreLoginUI.run();
+        if (postLogin == false && playing == false) {
+            PreLoginUI.run();
+        } else if (playing == true){
+            GameplayUI.run();
+        }
     }
 
     public static void createGame(AuthData authData, ServerFacade serverFacade) throws Exception {
