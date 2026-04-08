@@ -188,6 +188,45 @@ public class WebSocketHandler {
         }
     }
 
+    private void handleResign(WsContext ctx, UserGameCommand command) {
+        try {
+            AuthData auth = dataAccess.getAuth(command.getAuthToken());
+            if (auth == null) {
+                sendError(ctx, "Error: unauthorized");
+                return;
+            }
+            GameData gameData = dataAccess.getGame(command.getGameID());
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
+
+            ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), gameData);
+            if (playerColor == null) {
+                sendError(ctx, "Error: observers cannot resign");
+                return;
+            }
+
+            ChessGame game = gameData.game();
+            if (game.isOver()) {
+                sendError(ctx, "Error: game is already over");
+                return;
+            }
+
+            game.setOver(true);
+            dataAccess.updateGame(new GameData(
+                    gameData.gameID(), gameData.whiteUsername(),
+                    gameData.blackUsername(), gameData.gameName(), game
+            ));
+
+            broadcastToAll(command.getGameID(),
+                    gson.toJson(new NotificationMessage(auth.username() + " resigned. Game over.")));
+
+        } catch (DataAccessException e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
+    }
+
     // Helper functions:
 
     private void sendMessage(WsContext ctx, String message) {
