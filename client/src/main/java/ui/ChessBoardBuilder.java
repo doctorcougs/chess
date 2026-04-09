@@ -6,6 +6,9 @@ import chess.ChessGame;
 import chess.ChessPiece;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import chess.ChessMove;
+import chess.ChessPosition;
+import java.util.Collection;
 
 import static ui.EscapeSequences.*;
 
@@ -73,6 +76,61 @@ public class ChessBoardBuilder {
             case ROOK   -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_ROOK   : BLACK_ROOK;
             case PAWN   -> piece.getTeamColor() == ChessGame.TeamColor.WHITE ? WHITE_PAWN   : BLACK_PAWN;
         };
+    }
+
+    public static void buildBoardWithHighlights(GameData gameData, String color,
+                                                Collection<ChessMove> moves, ChessPosition selected) {
+        ChessGame game = gameData.game();
+        ChessBoard board = game.getBoard();
+        PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        boolean flipped = !"WHITE".equals(color);
+
+        // Build a set of destination squares for quick lookup
+        java.util.Set<ChessPosition> destinations = new java.util.HashSet<>();
+        if (moves != null) {
+            for (ChessMove move : moves) {
+                destinations.add(move.getEndPosition());
+            }
+        }
+
+        int[] rows = flipped ? new int[]{1,2,3,4,5,6,7,8} : new int[]{8,7,6,5,4,3,2,1};
+        String[] cols = flipped
+                ? new String[]{" H\u2003"," G\u2003"," F\u2003"," E\u2003"," D\u2003"," C\u2003"," B\u2003"," A\u2003"}
+                : new String[]{" A\u2003"," B\u2003"," C\u2003"," D\u2003"," E\u2003"," F\u2003"," G\u2003"," H\u2003"};
+
+        // Top label row
+        out.print(SET_BG_COLOR_RED + SET_TEXT_COLOR_BLACK + "   ");
+        for (String col : cols) { out.print(col); }
+        out.print("   ");
+        out.println(RESET_BG_COLOR + RESET_TEXT_COLOR);
+
+        for (int row : rows) {
+            out.print(SET_BG_COLOR_RED + SET_TEXT_COLOR_BLACK + " " + row + " ");
+            for (int col = flipped ? 8 : 1; flipped ? col >= 1 : col <= 8; col += flipped ? -1 : 1) {
+                ChessPosition pos = new chess.ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(pos);
+
+                // Yellow = selected piece, Green = valid destination
+                if (pos.equals(selected)) {
+                    out.print(SET_BG_COLOR_YELLOW);
+                } else if (destinations.contains(pos)) {
+                    out.print(SET_BG_COLOR_GREEN);
+                } else {
+                    boolean isDark = (row + col) % 2 == 0;
+                    out.print(isDark ? SET_BG_COLOR_BLUE : SET_BG_COLOR_WHITE);
+                }
+
+                out.print(getPieceSymbol(piece));
+            }
+            out.print(SET_BG_COLOR_RED + SET_TEXT_COLOR_BLACK + " " + row + " ");
+            out.println(RESET_BG_COLOR + RESET_TEXT_COLOR);
+        }
+
+        // Bottom label row
+        out.print(SET_BG_COLOR_RED + SET_TEXT_COLOR_BLACK + "   ");
+        for (String col : cols) { out.print(col); }
+        out.print("   ");
+        out.println(RESET_BG_COLOR + RESET_TEXT_COLOR);
     }
 
 }

@@ -47,7 +47,7 @@ public class GameplayUI implements ServerMessageHandler {
 
         boolean inGame = true;
         while (inGame) {
-            System.out.print("[" + authData.username() + "] > ");
+            System.out.println("[" + authData.username() + "] > ");
             String input = scanner.nextLine().trim().toLowerCase();
             switch (input) {
                 case "help" -> printHelp();
@@ -58,7 +58,7 @@ public class GameplayUI implements ServerMessageHandler {
                 }
                 case "move" -> move();
                 case "resign" -> resign();
-//                case "wthmcim" -> highlight();
+                case "wthmcim" -> highlight();
                 default -> System.out.println("Unknown command. Type 'help' for options.");
             }
         }
@@ -66,7 +66,7 @@ public class GameplayUI implements ServerMessageHandler {
         PostLoginUI.run(authData, serverFacade);
     }
 
-    //
+    // case statement functions
 
     private void printHelp() {
         System.out.println("  help     - show possible commands");
@@ -109,8 +109,11 @@ public class GameplayUI implements ServerMessageHandler {
 
             ChessMove move = new ChessMove(start, end, promotion);
             ws.sendCommand(new MakeMoveCommand(authData.authToken(), gameData.gameID(), move));
+//        } catch (Exception e) {
+//            System.out.println("Invalid position. format like 'e2'.");
+//        }
         } catch (Exception e) {
-            System.out.println("Invalid position. format like 'e2'.");
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
@@ -137,19 +140,19 @@ public class GameplayUI implements ServerMessageHandler {
         ws.close();
     }
 
-//    private void highlight() {
-//        System.out.print("Which piece? (e.g. e2): ");
-//        String pos = scanner.nextLine().trim();
-//        try {
-//            ChessPosition position = parsePosition(pos);
-//            Collection<ChessMove> moves = currentGame.validMoves(position);
-//            GameData current = new GameData(gameData.gameID(), gameData.whiteUsername(),
-//                    gameData.blackUsername(), gameData.gameName(), currentGame);
-//            ChessBoardBuilder.buildBoardWithHighlights(current, color, moves, position);
-//        } catch (Exception e) {
-//            System.out.println("Invalid position. Use format like 'e2'.");
-//        }
-//    }
+    private void highlight() {
+        System.out.print("Which piece? (e.g. e2): ");
+        String pos = scanner.nextLine().trim();
+        try {
+            ChessPosition position = parsePosition(pos);
+            Collection<ChessMove> moves = currentGame.validMoves(position);
+            GameData current = new GameData(gameData.gameID(), gameData.whiteUsername(),
+                    gameData.blackUsername(), gameData.gameName(), currentGame);
+            ChessBoardBuilder.buildBoardWithHighlights(current, color, moves, position);
+        } catch (Exception e) {
+            System.out.println("Invalid position. Use format like 'e2'.");
+        }
+    }
 
     // server messeges
 
@@ -182,7 +185,7 @@ public class GameplayUI implements ServerMessageHandler {
     private ChessPosition parsePosition(String input) {
         input = input.trim().toLowerCase();
         int col = input.charAt(0) - 'a' + 1;
-        int row = Character.getNumericValue(input.charAt(1));
+        int row = input.charAt(1) - '0';
         return new ChessPosition(row, col);
     }
 }
