@@ -46,8 +46,6 @@ public class PostLoginUI {
         }
         if (postLogin == false && playing == false) {
             PreLoginUI.run();
-        } else if (playing == true){
-//            GameplayUI.run();
         }
     }
 
@@ -111,17 +109,7 @@ public class PostLoginUI {
                 serverFacade.joinGame(authData.authToken(), gameID, color);
             }
 
-            System.out.println("Game joined");
-            ChessBoardBuilder chessBoard = new ChessBoardBuilder();
-            ChessGame chessGame = gameData.game() != null ? gameData.game() : new ChessGame();
-            GameData fullGameData = new GameData(
-                    gameData.gameID(),
-                    gameData.whiteUsername(),
-                    gameData.blackUsername(),
-                    gameData.gameName(),
-                    chessGame
-            );
-            chessBoard.buildBoard(fullGameData, color);
+            GameplayUI.run(gameData, authData, serverFacade, color, "http://localhost:8080");
 
         } catch (Exception e) {
             System.out.println("Error joining game, try again please.");
