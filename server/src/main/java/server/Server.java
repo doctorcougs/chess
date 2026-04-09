@@ -29,6 +29,7 @@ public class Server {
     private final JoinGameService joinGameService;
     private final LoginService loginService;
     private final LogoutService logoutService;
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
         try {
@@ -44,6 +45,7 @@ public class Server {
         joinGameService = new JoinGameService(dataAccess);
         loginService = new LoginService(dataAccess);
         logoutService = new LogoutService(dataAccess);
+        webSocketHandler = new WebSocketHandler(dataAccess);
         registerEndpoints();
     }
 
@@ -92,6 +94,11 @@ public class Server {
         javalin.put("/game", this::handleJoinGame);
         javalin.post("/session", this::handleLogin);
         javalin.delete("/session", this::handleLogout);
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(webSocketHandler::onConnect);
+            ws.onMessage(webSocketHandler::onMessage);
+            ws.onClose(webSocketHandler::onClose);
+        });
     }
 
     private void handleClear(Context ctx) {
