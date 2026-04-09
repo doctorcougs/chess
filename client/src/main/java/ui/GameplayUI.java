@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.Scanner;
 
 public class GameplayUI implements ServerMessageHandler {
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final Scanner SCANNER = new Scanner(System.in);
     private final GameData gameData;
     private final AuthData authData;
     private final ServerFacade serverFacade;
@@ -48,7 +48,7 @@ public class GameplayUI implements ServerMessageHandler {
         boolean inGame = true;
         while (inGame) {
             System.out.println("[" + authData.username() + "] > ");
-            String input = scanner.nextLine().trim().toLowerCase();
+            String input = SCANNER.nextLine().trim().toLowerCase();
             switch (input) {
                 case "help" -> printHelp();
                 case "redraw" -> redraw();
@@ -89,9 +89,9 @@ public class GameplayUI implements ServerMessageHandler {
             return;
         }
         System.out.print("From (ex: e2): ");
-        String from = scanner.nextLine().trim();
+        String from = SCANNER.nextLine().trim();
         System.out.print("To (ex: e4): ");
-        String to = scanner.nextLine().trim();
+        String to = SCANNER.nextLine().trim();
 
         try {
             ChessPosition start = parsePosition(from);
@@ -103,7 +103,7 @@ public class GameplayUI implements ServerMessageHandler {
                 int endRow = end.getRow();
                 if (endRow == 8 || endRow == 1) {
                     System.out.print("Promote to QUEEN, ROOK, BISHOP, or a KNIGHT): ");
-                    promotion = ChessPiece.PieceType.valueOf(scanner.nextLine().trim().toUpperCase());
+                    promotion = ChessPiece.PieceType.valueOf(SCANNER.nextLine().trim().toUpperCase());
                 }
             }
 
@@ -119,7 +119,7 @@ public class GameplayUI implements ServerMessageHandler {
 
     private void resign() throws Exception {
         System.out.print("You really just gonna give up? (yes/no): ");
-        String confirm = scanner.nextLine().trim().toLowerCase();
+        String confirm = SCANNER.nextLine().trim().toLowerCase();
         if (confirm.equals("yes")) {
             ws.sendCommand(new UserGameCommand(
                     UserGameCommand.CommandType.RESIGN,
@@ -142,7 +142,7 @@ public class GameplayUI implements ServerMessageHandler {
 
     private void highlight() {
         System.out.print("Which piece? (e.g. e2): ");
-        String pos = scanner.nextLine().trim();
+        String pos = SCANNER.nextLine().trim();
         try {
             ChessPosition position = parsePosition(pos);
             Collection<ChessMove> moves = currentGame.validMoves(position);
